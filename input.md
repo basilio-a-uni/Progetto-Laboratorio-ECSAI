@@ -4,44 +4,23 @@
 
 # USER STORIES:
 
-1. As the Administrator of the site i want to see current rules
-1. As the Administrator of the site i want to add a rule
-1. As the Administrator of the site i want to remove a rule
-1. As the Administrator of the site i want to modify a rule
-1. As the Administrator of the site i want to be able to temporarily enable or disable a rule, and that change to be persistent if the system restart
-
-1. I want to see live changes of monitoring thing
-1. I want the crucial survival information very clear 
-1. I want also to check information divided in rooms
-1. As a User
-1. As a User
-
-1. 
-1. 
-1. 
-1. 
-1. 
-
-1. 
-1. 
-1. 
-1. 
-1. 
-
-
----
-
-Fatte da Aurora (io)
-
-As the Administrator i want to see current rules
-As the Administrator i want to add a rule
-As the Administrator i want to remove a rule
-As the Administrator i want to modify a rule
-As the Administrator i want to be able to temporarly enable or disable a rule
-As the Administrator i want my changes to be persistent
-As the Administrator i want to be notified of the warning status of a sensor
-As the Administrator i want to monitor in real-time the status of the habitat
-As the Administrator i want to customize the interface
-As the Administrator i want to be able to switch on or off an actuator
-As the administrator i want to be able to see the latest states of each sensor
-As the administrator
+1. As the Administrator I want to see the current rules
+1. As the Administrator I want to add a rule
+1. As the Administrator I want to remove a rule
+1. As the Administrator I want to modify a rule
+1. As the Administrator I want to temporarily enable or disable a rule
+1. As the Administrator I want my changes to be persistent
+1. As the Administrator I want to be notified of the warning status of a sensor
+1. As the Administrator I want to monitor the status of the habitat in real time
+1. As the Administrator I want to customize the interface
+1. As the Administrator I want to switch an actuator on or off
+1. As the Administrator I want to see the latest state of each sensor
+1. As the Administrator I want to see the list of available sensors
+1. As the Administrator I want to see the list of available actuators
+1. As the Administrator I want to receive real-time updates from sensors1
+1. As the Administrator I want to see the history of triggered rules
+1. As the Administrator I want to filter sensors by type
+1. As the Administrator I want to search for a specific sensor
+1. As the Administrator I want to see detailed information about a sensor
+1. As the Administrator I want to see the current status of all actuators
+1. As the Administrator I want to receive alerts when a critical condition occurs
