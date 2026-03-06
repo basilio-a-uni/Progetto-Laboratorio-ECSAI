@@ -8,19 +8,85 @@ For internal sensor and telemetry data
 
 ```json
 {
-    "timestamp": "2036-03-06T10:42:10Z", 
-    "source_id": "string",               
-    "source_type": "string",             
-    "status": "string",                                         
-    "metrics": [
-        {
-          "name": "string",
-          "value": 0.0,
-          "unit": "string"
-        }
-    ]
+  "timestamp": "2036-03-06T10:42:10Z",
+  "source_id": "string",
+  "source_type": "rest | telemetry",
+  "status": "ok | warning | unknown",
+  "metrics": [
+    {
+      "name": "string",
+      "value": 0.0,
+      "unit": "string"
+    }
+  ]
 }
 ```
+## General Normalization Policy
+All incoming payloads from REST sensors and telemetry streams are converted into a unified internal event schema to ensure consistent processing across the system.
+
+Each payload generates one normalized event. The timestamp is derived from the original message, the source identifier corresponds to the sensor or topic name, and the source type indicates whether the data comes from REST polling or telemetry streaming. 
+
+All numeric observations are mapped into the metrics array, while contextual non-numeric attributes may be preserved in metadata. This approach allows the rule engine, state cache, and dashboard to operate on a consistent data format regardless of the original device schema.
+
+## Normalization Rules
+
+### Rest Sensors
+
+#### `rest.scalar.v1`
+
+- `timestamp` ← `captured_at`
+- `source_id` ← `sensor_id`
+- `source_type` ← `"rest"`
+- `status` ← `status`
+- `metrics` contains one entry:
+    - `name` ← `metric`
+    - `value` ← `value`
+    - `unit` ← `unit`
+
+- Example:
+
+```json
+{
+    "sensor_id": "greenhouse_temperature",
+    "captured_at": "2036-03-06T10:42:10Z",
+    "metric": "temperature",
+    "value": 27.4,
+    "unit": "C",
+    "status": "ok"
+}
+'''
+→
+'''json
+{
+    "timestamp": "2036-03-06T10:42:10Z",
+    "source_id": "greenhouse_temperature",
+    "source_type": "rest",
+    "status": "ok",
+    "metrics": [
+        {"name": "temperature", "value": 27.4, "unit": "C"}
+    ]
+}
+'''
+
+
+
+
+
+
+
+
+
+- Example:
+
+```json
+{
+    "sensor_id": "greenhouse_temperature",
+    "captured_at": "2036-03-06T10:42:10Z",
+    "metric": "temperature",
+    "value": 27.4,
+    "unit": "C",
+    "status": "ok"
+}
 
 
 - Examples:
