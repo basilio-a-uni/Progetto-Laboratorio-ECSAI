@@ -8,19 +8,6 @@ For internal sensor and telemetry data
 
 ```json
 {
-<<<<<<< HEAD
-    "timestamp": "2036-03-06T10:42:10Z", 
-    "source_id": "string",               
-    "source_type": "string",             
-    "status": "string",                  
-    "metrics": [                         
-        {
-            "name": "string",
-            "value": 0.0,
-            "unit": "string"
-        }
-    ]
-=======
   "timestamp": "2036-03-06T10:42:10Z",
   "source_id": "string",
   "source_type": "rest | telemetry",
@@ -32,7 +19,6 @@ For internal sensor and telemetry data
       "unit": "string"
     }
   ]
->>>>>>> 5ba5e00a9066473b2306cdca9f264c8c51dc17cb
 }
 ```
 ## General Normalization Policy
