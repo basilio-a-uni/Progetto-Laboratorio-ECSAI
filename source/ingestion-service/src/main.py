@@ -44,6 +44,7 @@ async def consume_topic(topic):
                     # unify the data
                     # send the data
 
+                    print("Stream telemetry:")
                     print(f"[{topic}] Dati: {data}")
         except Exception as e:
             print(f"[!] Errore su {topic}: {e}. Riprovo tra 5s...")
@@ -61,6 +62,7 @@ async def poll_rest(sensor):
                     # unify the data
                     # send the data
 
+                    print("Rest sensor:")
                     print(f"[{sensor}] Dati: {data}")
 
             except Exception as e:

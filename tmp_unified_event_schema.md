@@ -21,6 +21,7 @@ For internal sensor and telemetry data
   ]
 }
 ```
+
 ## General Normalization Policy
 All incoming payloads from REST sensors and telemetry streams are converted into a unified internal event schema to ensure consistent processing across the system.
 
@@ -45,49 +46,40 @@ All numeric observations are mapped into the metrics array, while contextual non
 
 - Example:
 
-```json
-{
-    "sensor_id": "greenhouse_temperature",
-    "captured_at": "2036-03-06T10:42:10Z",
-    "metric": "temperature",
-    "value": 27.4,
-    "unit": "C",
-    "status": "ok"
-}
-'''
-→
-'''json
-{
-    "timestamp": "2036-03-06T10:42:10Z",
-    "source_id": "greenhouse_temperature",
-    "source_type": "rest",
-    "status": "ok",
-    "metrics": [
-        {"name": "temperature", "value": 27.4, "unit": "C"}
-    ]
-}
-'''
-
-
-
-
-
-
-
-
-
-- Example:
-
-```json
-{
-    "sensor_id": "greenhouse_temperature",
-    "captured_at": "2036-03-06T10:42:10Z",
-    "metric": "temperature",
-    "value": 27.4,
-    "unit": "C",
-    "status": "ok"
-}
-
+    1.
+        ```json
+        {
+            "sensor_id": "greenhouse_temperature",
+            "captured_at": "2036-03-06T10:42:10Z",
+            "metric": "temperature",
+            "value": 27.4,
+            "unit": "C",
+            "status": "ok"
+        }
+        ```
+        →
+        ```json
+        {
+            "timestamp": "2036-03-06T10:42:10Z",
+            "source_id": "greenhouse_temperature",
+            "source_type": "rest",
+            "status": "ok",
+            "metrics": [
+                {"name": "temperature", "value": 27.4, "unit": "C"}
+            ]
+        }
+        ```
+    1.
+        ```json
+        {
+            "sensor_id": "greenhouse_temperature",
+            "captured_at": "2036-03-06T10:42:10Z",
+            "metric": "temperature",
+            "value": 27.4,
+            "unit": "C",
+            "status": "ok"
+        }
+        ```
 
 - Examples:
     1. `rest.particulate.v1`
@@ -101,7 +93,7 @@ All numeric observations are mapped into the metrics array, while contextual non
             "status": "warning"
         }
         ```
-        $\rarr$
+        →
         ```json
         {
             "timestamp": "2036-03-06T10:00:00Z",
@@ -115,7 +107,8 @@ All numeric observations are mapped into the metrics array, while contextual non
             ]
         }
         ```
-    1. `topic.power.v1`
+
+    2. `topic.power.v1`
         ```json
         {
             "topic": "mars/telemetry/solar_array",
@@ -127,7 +120,7 @@ All numeric observations are mapped into the metrics array, while contextual non
             "cumulative_kwh": 5040.2
         }
         ```
-        $\rarr$
+        →
         ```json
         {
             "timestamp": "2036-03-06T10:01:00Z",
@@ -142,26 +135,25 @@ All numeric observations are mapped into the metrics array, while contextual non
         }
         ```
 
-
 # Actuator Command Schema
 
 format to send to actuators
 
 ```json
 {
-    "actuator_id": "string",  
-    "action": "string",       
-    "reason": "string"        
+    "actuator_id": "string",
+    "action": "string",
+    "reason": "string"
 }
 ```
 
-
 - Examples
-    1. 
-    ```json
-    {
-        "actuator_id": "ventilation_fan", 
-        "action": "ON", 
-        "reason": "pm25_exceeded_threshold"
-    }
-    ```
+
+    1.
+        ```json
+        {
+            "actuator_id": "ventilation_fan",
+            "action": "ON",
+            "reason": "pm25_exceeded_threshold"
+        }
+        ```
