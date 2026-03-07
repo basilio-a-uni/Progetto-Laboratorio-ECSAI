@@ -1,6 +1,0 @@
-- [ ] cartelle servizi dockerizzati e.g., separa Ingestion, Processing e Presentation
-- [ ] event schema unificato
-- [ ] message broker (pika python lib)
-- [ ] 
-- [ ] 
-- [ ] 
