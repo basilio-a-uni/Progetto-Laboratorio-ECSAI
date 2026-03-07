@@ -3,7 +3,7 @@ import os
 import json
 import time
 import pika
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify # <-- Aggiunto jsonify
 from flask_socketio import SocketIO
 import requests
 
@@ -59,73 +59,66 @@ def home():
     # Renderizza la nostra dashboard
     return render_template("index.html")
 
-
-
+# ==========================================
+# ROTTE PROXY VERSO IL PROCESSING ENGINE
+# ==========================================
 ENGINE_URL = "http://processing-engine:8001"
-
-# @app.route("/rules", methods=["GET", "POST"])
-# def manage_rules():
-#     if request.method == "POST":
-#         # Estraiamo i dati dal form HTML
-#         rule_data = {
-#             "sensor_name": request.form.get("sensor_name"),
-#             "metric": request.form.get("metric"),
-#             "operator": request.form.get("operator"),
-#             "sensor_target_value": request.form.get("sensor_target_value"),
-#             "actuator_name": request.form.get("actuator_name"),
-#             "actuator_set_value": request.form.get("actuator_set_value")
-#         }
-        
-#         # Inoltriamo il comando al Processing Engine via API REST
-#         try:
-#             requests.post(f"{ENGINE_URL}/rules", json=rule_data, timeout=5)
-#         except Exception as e:
-#             print(f"Errore di comunicazione col Processing Engine: {e}")
-            
-#     # Se è una GET, o dopo aver inviato la POST, mostriamo la pagina
-#     return render_template("rules.html")
 
 @app.route("/rules", methods=["GET", "POST"])
 def manage_rules():
     if request.method == "POST":
-        # 1. Estraiamo i dati dal form HTML
-        rule_data = {
-            "sensor_name": request.form.get("sensor_name"),
-            "metric": request.form.get("metric"),
-            "operator": request.form.get("operator"),
-            "sensor_target_value": request.form.get("sensor_target_value"),
-            "actuator_name": request.form.get("actuator_name"),
-            "actuator_set_value": request.form.get("actuator_set_value")
-        }
+        # Ora il browser invia un JSON tramite Javascript, non più un Form HTML!
+        rule_data = request.json
         
-        # 2. Inviamo la nuova regola al motore
+        # Inoltriamo il JSON al Processing Engine
         try:
-            requests.post(f"{ENGINE_URL}/rules", json=rule_data, timeout=5)
+            response = requests.post(f"{ENGINE_URL}/rules", json=rule_data, timeout=5)
+            # Rispondiamo al Javascript dicendo che è andato tutto bene
+            return jsonify({"status": "success"}), 200
         except Exception as e:
             print(f"Errore di invio regola: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
             
-    # --- NOVITÀ: RECUPERIAMO LA LISTA AGGIORNATA ---
+    # Se è una GET, recuperiamo la lista aggiornata
     rules_list = []
     try:
-        # Facciamo una GET al Processing Engine per avere tutte le regole
         response = requests.get(f"{ENGINE_URL}/rules", timeout=5)
         if response.status_code == 200:
             rules_list = response.json()
     except Exception as e:
         print(f"Errore nel recupero regole: {e}")
 
-    # 3. Passiamo existing_rules al template
     return render_template("rules.html", existing_rules=rules_list)
 
 
+@app.route("/rules/<int:rule_id>", methods=["DELETE"])
+def delete_rule(rule_id):
+    """Proxy per eliminare una regola"""
+    try:
+        response = requests.delete(f"{ENGINE_URL}/rules/{rule_id}", timeout=5)
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        print(f"Errore delete regola: {e}")
+        return jsonify({"status": "error"}), 500
+
+
+@app.route("/rules/<int:rule_id>/toggle", methods=["POST"])
+def toggle_rule(rule_id):
+    """Proxy per attivare/disattivare una regola"""
+    try:
+        # Recuperiamo il JSON inviato dal Javascript { "enabled": true/false }
+        payload = request.json 
+        response = requests.post(f"{ENGINE_URL}/rules/{rule_id}/toggle", json=payload, timeout=5)
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        print(f"Errore toggle regola: {e}")
+        return jsonify({"status": "error"}), 500
+
+# ==========================================
 
 @app.route("/sensors-actuators")
 def sensors_actuators():
-    # Per ora renderizziamo solo la pagina statica. 
-    # In futuro potresti voler fare una GET al tuo motore per caricare lo stato iniziale degli attuatori
     return render_template("sensors_actuators.html")
-
-
 
 if __name__ == "__main__":
     # Avviamo il consumer RabbitMQ in un thread in background

@@ -89,6 +89,13 @@
 
 </body>
 </html> -->
+
+
+
+<!-- ---------------------------------- -->
+
+
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,5 +251,319 @@
 
     <a href="/" class="nav-link">← Back to Dashboard</a>
 
+</body>
+</html> -->
+
+
+
+
+
+
+<!-- ----------------------------------------------------------- -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars Base | Rule Management</title>
+    <style>
+        :root {
+            --bg-color-main: #020117; 
+            --bg-sidebar: #2A56C6; 
+            --bg-content: #E2E8F0; 
+            --card-header-bg: #3B65D9; 
+            --text-main: #ffffff;
+            --text-dark: #1e293b;
+            --accent: #ea580c;
+            --ok-color: #35D01A;
+            --off-color: #f97316; 
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- STILI SIDEBAR E NAVBAR --- */
+        .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; }
+        .sidebar-icon { font-size: 1.8em; color: white; cursor: pointer; }
+        
+        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-main); }
+        
+        .navbar { height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-color-main); }
+        .navbar-links { display: flex; gap: 30px; }
+        .navbar-link { color: #8C8B9E; text-decoration: none; font-size: 1.1em; padding-bottom: 5px; }
+        .navbar-link.active { color: white; border-bottom: 2px solid white; }
+        .navbar-title { font-size: 1.5em; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+
+        /* --- CONTENITORE PRINCIPALE --- */
+        .content-area {
+            flex-grow: 1;
+            background-color: var(--bg-content);
+            margin: 0 20px 20px 0;
+            border-radius: 15px;
+            padding: 30px;
+            overflow-y: auto;
+            color: var(--text-dark);
+        }
+
+        /* --- BARRA DI RICERCA SUPERIORE --- */
+        .top-action-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .search-bar { flex-grow: 1; background-color: #cbd5e1; border-radius: 25px; display: flex; align-items: center; padding: 5px 20px; }
+        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; font-size: 1em; outline: none; }
+        .btn-add-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--text-dark); background: transparent; font-size: 1.5em; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
+        /* --- STILI DELLE CARD DELLE REGOLE --- */
+        .rules-list { display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; }
+        .rule-card {
+            background-color: white;
+            border: 3px solid var(--card-header-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .rule-header {
+            background-color: var(--card-header-bg);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .rule-title { font-size: 1.2em; font-weight: bold; margin: 0; }
+        
+        .rule-actions { display: flex; align-items: center; gap: 15px; }
+        .action-icon { cursor: pointer; font-size: 1.2em; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3)); }
+        
+        .rule-body { padding: 15px 20px; font-size: 1.1em; color: var(--text-dark); }
+        .badge { background-color: #f1f5f9; padding: 3px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;}
+
+        /* --- STILE TOGGLE SWITCH --- */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--off-color); transition: .4s; border-radius: 34px; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--ok-color); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* --- FORM AGGIUNTA REGOLA --- */
+        .form-panel { background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; }
+        .form-panel h2 { margin-top: 0; color: var(--card-header-bg); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #475569; font-weight: bold; font-size: 0.9em;}
+        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #0f172a; box-sizing: border-box; font-size: 1em;}
+        .btn-submit { background-color: var(--card-header-bg); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1.1em; width: 100%; margin-top: 20px; font-weight: bold; transition: background 0.2s;}
+        .btn-submit:hover { background-color: #2a4bb8; }
+        
+        .empty-state { text-align: center; color: #64748b; padding: 40px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <div class="sidebar-icon">🚀</div>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="sidebar-icon">⚙️</div>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="navbar">
+            <div class="navbar-links">
+                <a href="/" class="navbar-link">Dashboard</a>
+                <a href="/rules" class="navbar-link active">Rules</a>
+                <a href="/sensors" class="navbar-link">Sensor List</a>
+            </div>
+            <div class="navbar-title">
+                <span>🚀</span> Welcome to Mars
+            </div>
+        </div>
+
+        <div class="content-area">
+            
+            <div class="top-action-bar">
+                <div class="search-bar">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Search rules...">
+                </div>
+                <button class="btn-add-circle" onclick="document.getElementById('add-rule-form').scrollIntoView({behavior: 'smooth'})">+</button>
+            </div>
+
+            <div class="rules-list">
+                {% for rule in existing_rules %}
+                <div class="rule-card" id="rule-{{ rule.id }}">
+                    <div class="rule-header">
+                        <h3 class="rule-title">{{ rule.sensor_name | replace('_', ' ') | title }} Rule</h3>
+                        <div class="rule-actions">
+                            <span class="action-icon" onclick="deleteRule('{{ rule.id }}')" title="Delete Rule">🗑️</span>
+                            <span class="action-icon" title="Edit Rule">✏️</span>
+                            <label class="switch">
+                                <input type="checkbox" 
+                                       {% if rule.enabled %}checked{% endif %} 
+                                       onchange="toggleRuleStatus('{{ rule.id }}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="rule-body">
+                        IF <span class="badge">{{ rule.sensor_name }}</span> 
+                        <span style="font-weight: bold; color: var(--card-header-bg);">{{ rule.operator }}</span> 
+                        <span class="badge">{{ rule.sensor_target_value }}</span> 
+                        THEN set <span class="badge">{{ rule.actuator_name }}</span> 
+                        to <strong style="color: {{ 'var(--ok-color)' if rule.actuator_set_value == 'ON' else 'var(--off-color)' }}">{{ rule.actuator_set_value }}</strong>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    No rules deployed yet. Scroll down to create one.
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-panel">
+                <h2>➕ Create New Rule</h2>
+                <form id="add-rule-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Sensor Name</label>
+                            <input type="text" name="sensor_name" required placeholder="e.g. greenhouse_temperature">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Metric</label>
+                            <input type="text" name="metric" required placeholder="e.g. temperature_c">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Operator</label>
+                            <select name="operator">
+                                <option value=">">Greater than (>)</option>
+                                <option value="<">Less than (<)</option>
+                                <option value="==">Equal to (==)</option>
+                                <option value=">=">Greater or Equal (>=)</option>
+                                <option value="<=">Less or Equal (<=)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Target Value</label>
+                            <input type="number" step="0.01" name="sensor_target_value" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Actuator to Trigger</label>
+                            <input type="text" name="actuator_name" required placeholder="e.g. cooling_fan">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Actuator Action</label>
+                            <select name="actuator_set_value">
+                                <option value="ON">Turn ON</option>
+                                <option value="OFF">Turn OFF</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Deploy New Rule</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = ''; 
+
+        // 1. GESTIONE INVIO NUOVA REGOLA in JSON
+        document.getElementById('add-rule-form').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const formData = new FormData(this);
+            const ruleData = Object.fromEntries(formData.entries());
+            
+            // Assicuriamoci che il numero sia passato come numero
+            ruleData.sensor_target_value = parseFloat(ruleData.sensor_target_value);
+
+            fetch(`${API_BASE_URL}/rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ruleData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === "success" || data.status === undefined) { 
+                    location.reload(); 
+                } else {
+                    alert('Errore durante la creazione della regola.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Impossibile contattare il server.');
+            });
+        });
+
+        // 2. FUNZIONE PER ABILITARE/DISABILITARE
+        function toggleRuleStatus(ruleId, isEnabled) {
+            fetch(`${API_BASE_URL}/rules/${ruleId}/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: isEnabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status !== "success") {
+                    alert('Errore durante l\'aggiornamento della regola.');
+                    location.reload(); 
+                }
+            })
+            .catch(error => {
+                console.error('Errore di rete:', error);
+                alert('Impossibile contattare il server.');
+                location.reload();
+            });
+        }
+
+        // 3. FUNZIONE PER ELIMINARE
+        function deleteRule(ruleId) {
+            if(confirm("Sei sicuro di voler eliminare questa regola? L'operazione è irreversibile.")) {
+                fetch(`${API_BASE_URL}/rules/${ruleId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        const card = document.getElementById(`rule-${ruleId}`);
+                        if(card) {
+                            card.style.opacity = '0';
+                            setTimeout(() => card.remove(), 300);
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        alert('Errore durante la cancellazione della regola.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore di rete:', error);
+                    alert('Impossibile contattare il server.');
+                });
+            }
+        }
+    </script>
 </body>
 </html>
