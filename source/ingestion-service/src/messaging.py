@@ -3,36 +3,42 @@ import json
 import time
 import os
 
+# Nome del nostro Exchange di tipo Fanout
+EXCHANGE_NAME = 'mars_telemetry_exchange'
+
 def get_connection():
     rabbit_host = os.getenv('RABBITMQ_HOST', 'localhost')
     while True:
         try:
-            print("Testing connection")
+            # Rimosso il print continuo del testing, lo stampiamo solo in caso di errore o successo
             connection = pika.BlockingConnection(
                 pika.ConnectionParameters(host=rabbit_host)
             )
-            print("Successful connection")
             return connection
         except pika.exceptions.AMQPConnectionError:
-            print(" [!] RabbitMQ not yeat started. Retry in 2 seconds.")
+            print("[!] RabbitMQ non ancora pronto. Riprovo tra 2 secondi...")
             time.sleep(2)
-
 
 def send_message(unified_data):
     connection = get_connection()
     channel = connection.channel()
 
-    channel.queue_declare(queue='sensor_data', durable=False)
+    # INVECE DI DICHIARARE UNA CODA, DICHIARIAMO UN EXCHANGE DI TIPO FANOUT
+    # Questo significa che il broker inoltrerà il messaggio a TUTTE le code 
+    # che decideranno di collegarsi a questo exchange.
+    channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='fanout')
 
     message = json.dumps(unified_data)
 
+    # Pubblichiamo il messaggio sull'Exchange. 
+    # routing_key='' perché il fanout ignora le routing key, manda a tutti!
     channel.basic_publish(
-        exchange='',
-        routing_key='sensor_data',
+        exchange=EXCHANGE_NAME,
+        routing_key='', 
         body=message,
     )
 
-    print(f" [x] Inviato: {message}")
+    # De-commenta la riga sotto se vuoi vedere tutto il traffico a terminale,
+    # ma attento che potrebbe inondare i log!
+    # print(f" [x] Pubblicato su Exchange: {message[:50]}...") 
     connection.close()
-
-

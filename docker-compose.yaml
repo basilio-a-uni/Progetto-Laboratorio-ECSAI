@@ -25,25 +25,13 @@ services:
       - rabbitmq
       - simulator
 
-  processing-engine:
-    build: ./source/processing-engine
-    restart: on-failure
-    volumes:
-      - ./source/data:/data
-    environment:
-      DATABASE_URL: "/data/rules.db"
-      RABBITMQ_HOST: "rabbitmq"
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "8001:8001"
-    depends_on:
-      - rabbitmq
-      - simulator
-
   frontend:
     build: ./source/frontend
     restart: on-failure
     ports:
       - "8000:8000"
+    environment:
+      PYTHONUNBUFFERED: 1
+      RABBITMQ_HOST: "rabbitmq"
     depends_on:
-      - processing-engine
+      - rabbitmq
