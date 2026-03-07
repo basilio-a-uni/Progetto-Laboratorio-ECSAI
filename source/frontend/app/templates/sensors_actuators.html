@@ -450,7 +450,6 @@
 </body>
 </html> -->
 
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -476,17 +475,51 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color-main);
             color: var(--text-main);
-            margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- SIDEBAR & NAVBAR --- */
+        /* --- SIDEBAR (Uniformata a rules.html) --- */
         .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; border-right: 1px solid #110D2C; }
+        
+        /* --- MAIN WRAPPER & NAVBAR (Uniformata a rules.html) --- */
         .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-body); min-width: 0; }
-        .navbar { height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-color-body); border-bottom: 1px solid #110D2C; }
+        
+        .navbar { 
+            height: 60px; 
+            min-height: 60px; /* Forza l'altezza minima */
+            flex-shrink: 0;   /* Impedisce al flexbox di schiacciarla */
+            padding: 0 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background-color: var(--bg-color-body); 
+            border-bottom: 1px solid #110D2C; 
+        }
         .navbar-links { display: flex; gap: 20px; }
-        .navbar-link { position: relative; text-decoration: none; padding: 10px 15px; color: #8C8B9E; font-size: 0.9em; transition: color 0.3s ease; }
+        .navbar-link {
+            position: relative;
+            text-decoration: none;
+            padding: 10px 15px;
+            color: #8C8B9E;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
         .navbar-link.active { color: #ffffff; }
-        .navbar-link.active::after { content: ""; position: absolute; bottom: -5px; left: 15%; width: 70%; height: 3px; background-color: #00ff88; box-shadow: 0 0 10px #00ff88; border-radius: 2px; }
+        .navbar-link.active::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 15%;
+            width: 70%;
+            height: 3px;
+            background-color: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+            border-radius: 2px;
+        }
         .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
 
         /* --- CONTENUTO PRINCIPALE --- */
@@ -552,10 +585,10 @@
 
     <div class="sidebar">
         <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" style="width: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission" style="width: 32px; height: 32px; padding: 10px;">
         </div>
         <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" style="width: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings" style="width: 32px; height: 32px; padding: 10px;">
         </div>
     </div>
 
@@ -567,7 +600,7 @@
                 <a href="{{ url_for('sensors_actuators') }}" class="navbar-link active">Sensors & Actuators</a>
             </div>
             <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" style="width: 24px;">
+                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket" style="width: 24px; height: 24px;">
                 <span>Mars Base Operations</span>
             </div>
         </div>
@@ -724,16 +757,16 @@
             }
         });
 
-        // NUOVO: Ascolta i cambiamenti degli attuatori in tempo reale
+        // Ascolta i cambiamenti degli attuatori in tempo reale
         socket.on('actuator_update', function(data) {
             const actuatorId = data.actuator_id;
             const newState = data.state; // "ON" o "OFF"
             
-            // Trova l'interruttore corretto usando l'ID che abbiamo appena aggiunto
+            // Trova l'interruttore corretto
             const toggleElement = document.getElementById(`toggle-${actuatorId}`);
             
             if (toggleElement) {
-                // Controlliamo se va aggiornato per evitare loop infiniti se siamo stati noi a cliccarlo
+                // Controlliamo se va aggiornato per evitare loop infiniti
                 const isCurrentlyChecked = toggleElement.checked;
                 const shouldBeChecked = (newState === "ON");
                 
