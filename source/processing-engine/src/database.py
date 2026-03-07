@@ -18,7 +18,7 @@ def init_db():
 	)
 	""")
 
-	cur.execute("INSERT INTO rules VALUES('greenhouse_temperature', 'temperature_c', '>', 28, 'cooling_fan', 'ON', true)")
+	cur.execute("INSERT INTO rules VALUES('greenhouse_temperature', 'temperature_c', '>', 0, 'cooling_fan', 'ON', true)")
 
 	cur.execute("SELECT * FROM rules")
 

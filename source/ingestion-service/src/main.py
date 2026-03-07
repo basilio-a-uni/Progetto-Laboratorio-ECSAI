@@ -308,12 +308,14 @@ async def poll_rest(sensor):
 
 async def main():
     await asyncio.gather(
-            *(consume_topic(t) for t in TOPICS),
-            *(poll_rest(s) for s in REST_SENSORS)
+            poll_rest("greenhouse_temperature")
+            #*(consume_topic(t) for t in TOPICS),
+            #*(poll_rest(s) for s in REST_SENSORS)
         )
 
 if __name__ == "__main__":
     data_example = {
+        "source_id": "test",
         "timestamp": "2026-03-06T11:45:00",
         "rest_sensors": {"greenhouse_temp": 22.5, "co2_hall": 450},
         "telemetry": {"topic_alpha": 10.2}

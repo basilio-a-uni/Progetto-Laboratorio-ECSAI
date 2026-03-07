@@ -3,27 +3,9 @@ import json
 import os
 import time
 
-from collections import defaultdict
-
 import database
-import sqlite3
 
-class State():
-    def __init__(self, sensor_data = {}, current_rules = defaultdict(list)):
-        self.sensor_data = sensor_data
-        self.current_rules = current_rules
-
-    def load_rules(self):
-        conn = sqlite3.connect(os.getenv("DATABASE_URL"))
-        cur = conn.cursor()
-
-        cur.execute("SELECT * FROM rules")
-        rows = cur.fetchall()
-
-        for row in rows:
-            current_rules[row[0]].append(row)
-            
-
+from entities import State
 
 def get_connection():
     rabbit_host = os.getenv('RABBITMQ_HOST', 'localhost')
@@ -36,20 +18,22 @@ def get_connection():
             print("Successful connection")
             return connection
         except:
-            print(" [!] RabbitMQ not yeat started. Retry in 2 seconds.")
-            time.sleep(2)
+            print(" [!] RabbitMQ not yet started. Retry in 5 seconds.")
+            time.sleep(5)
 
 
-def callback(ch, method, properties, body):
-    data = json.loads(body)
-    print(f"Ricevuto dati : {data}\n\n")
-    
-    # TODO: logica delle regole    
+def inject_callback(state):
+    def callback(ch, method, properties, body):
+        data = json.loads(body)
+        print(f"Ricevuto dati : {data}\n\n")
 
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+        state.update(data)
+        
 
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    return callback
 
-def start_consuming():
+def start_consuming(state):
     connection = get_connection()
     channel = connection.channel()
 
@@ -57,7 +41,7 @@ def start_consuming():
     
     channel.basic_consume(
         queue='sensor_data', 
-        on_message_callback=callback, 
+        on_message_callback=inject_callback(state), 
         auto_ack=False
     )
     channel.start_consuming()
@@ -65,7 +49,9 @@ def start_consuming():
 
 
 if __name__ == "__main__":
-    state = State()
-    state.load_rules()
     database.init_db()
-    start_consuming()
+    state = State()
+    state.load_persistent_rules()
+    state.load_persistent_actuators()
+    print(state.current_rules)
+    start_consuming(state)

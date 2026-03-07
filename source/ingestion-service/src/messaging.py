@@ -34,5 +34,3 @@ def send_message(unified_data):
 
     print(f" [x] Inviato: {message}")
     connection.close()
-
-
