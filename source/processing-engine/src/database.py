@@ -13,11 +13,12 @@ def init_db():
 		operator string CHECK(operator IN ('>', '>=', '=', '<=', '<')),
 		sensor_target_value int,
 		actuator_name string,
-		actuator_set_value string CHECK(actuator_set_value IN ("ON", "OFF"))
+		actuator_set_value string CHECK(actuator_set_value IN ("ON", "OFF")),
+		enabled bool
 	)
 	""")
 
-	cur.execute("INSERT INTO rules VALUES('greenhouse_temperature', '>', 28, 'cooling_fan', true)")
+	cur.execute("INSERT INTO rules VALUES('greenhouse_temperature', 'temperature_c', '>', 28, 'cooling_fan', 'ON', true)")
 
 	cur.execute("SELECT * FROM rules")
 
