@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -162,6 +162,357 @@
         });
 
         socket.on('connect', () => console.log('Connesso al Server Flask!'));
+        socket.on('disconnect', () => console.log('Disconnesso dal Server Flask.'));
+    </script>
+</body>
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars Base Operations Dashboard</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg-color-main: #020117; 
+            --bg-color-body: #110D2C; 
+            --panel-bg-default: #ffffff; 
+            --panel-bg-habitat: #2A56C6; 
+            --panel-bg-health: #35D01A; 
+            --panel-bg-bio: #1e1b4b; 
+            --panel-bg-infra: #27272a; /* Grigio scuro industriale per l'infrastruttura */
+            --text-main: #ffffff;
+            --text-panel-dark: #2A56C6; 
+            --text-muted: #94a3b8;
+            --accent: #2A56C6; 
+            --ok-color: #35D01A;
+            --warn-color: #f33a1e; 
+            --infra-accent: #fbbf24; /* Giallo/Ambra per i sistemi di potenza */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Barra laterale e Navigazione */
+        .sidebar { width: 70px; background-color: var(--bg-color-main); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; border-right: 1px solid #110D2C; }
+        .sidebar-icon { font-size: 1.5em; color: var(--text-main); cursor: pointer; }
+        .main-body { flex-grow: 1; background-color: var(--bg-color-body); display: flex; flex-direction: column; }
+        .navbar { height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-color-body); border-bottom: 1px solid #110D2C; }
+        .navbar-links { display: flex; gap: 20px; }
+        .navbar-link { color: #8C8B9E; text-decoration: none; font-size: 0.9em; display: flex; flex-direction: column; align-items: flex-start; }
+        .navbar-link.active { color: var(--text-main); }
+        .section-label { font-size: 0.6em; color: #110D2C; background-color: #ffffff; padding: 2px 5px; border-radius: 3px; margin-top: 2px; }
+        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
+
+        /* Contenuto della dashboard */
+        .dashboard-content {
+            flex-grow: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: min-content;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background-color: var(--panel-bg-default);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            color: #000000;
+            transition: background-color 0.3s ease;
+        }
+
+        .panel-title { color: var(--text-panel-dark); font-size: 1.2em; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+        .timestamp { font-size: 0.65em; color: var(--text-muted); margin-top: 4px; font-family: monospace; }
+
+        /* Pannelli generici - Layout a griglia */
+        .grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; } /* Griglia per i 5 elementi infra */
+        
+        .metric-card { display: flex; flex-direction: column; align-items: center; text-align: center; background-color: rgba(0,0,0,0.15); padding: 15px; border-radius: 8px; }
+        .metric-card-value { font-size: 1.8em; font-weight: bold; color: var(--ok-color); }
+        .metric-card-label { font-size: 0.85em; color: var(--text-main); margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Specifici Pannelli */
+        .enviroment-panel { grid-column: 1 / 2; }
+        .env-metric-container { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
+        .env-metric-container:last-child { border-bottom: none; }
+        .env-label { font-size: 1.1em; font-weight: 600; color: var(--text-panel-dark); }
+        .env-data-group { text-align: right; }
+        .env-value { font-size: 1.5em; font-weight: bold; color: #110D2C; }
+
+        .health-panel { grid-column: 2 / 3; background-color: var(--panel-bg-health); color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 150px; }
+        .health-panel .panel-title { color: #ffffff; justify-content: center; font-size: 1.8em; margin-bottom: 5px; }
+        .health-panel .status-text { font-size: 3.5em; font-weight: bold; letter-spacing: 2px; }
+        .health-panel .timestamp { color: rgba(255,255,255,0.7); }
+
+        .habitat-panel { grid-column: 1 / 2; background-color: var(--panel-bg-habitat); color: #ffffff; }
+        .habitat-panel .panel-title { color: #ffffff; }
+
+        .biologic-panel { grid-column: 2 / 3; background-color: var(--panel-bg-bio); color: #ffffff; }
+        .biologic-panel .panel-title { color: #64B5F6; }
+
+        /* Nuovo Pannello Infrastructure */
+        .infrastructure-panel { grid-column: 1 / 3; background-color: var(--panel-bg-infra); color: #ffffff; }
+        .infrastructure-panel .panel-title { color: var(--infra-accent); }
+        .infrastructure-panel .metric-card-value { color: var(--infra-accent); font-size: 1.6em; }
+
+        /* Animazione */
+        .update-flash { animation: flash 0.3s ease; }
+        @keyframes flash {
+            0% { opacity: 0.3; transform: scale(0.95); }
+            50% { color: var(--warn-color); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <span class="sidebar-icon">🛸</span>
+            <span class="sidebar-icon" style="color: #4C4B64;">⋮</span>
+        </div>
+        <div class="sidebar-bottom"><span class="sidebar-icon">⚙️</span></div>
+    </div>
+
+    <div class="main-body">
+        <div class="navbar">
+            <div class="navbar-links">
+                <a href="{{ url_for('home') }}" class="navbar-link active">Dashboard <span class="section-label">Main</span></a>
+                <a href="{{ url_for('manage_rules') }}" class="navbar-link">Rules <span class="section-label">Engine</span></a>
+                <a href="{{ url_for('sensors_actuators') }}" class="navbar-link">Sensors & Actuators <span class="section-label">Ctrl</span></a>
+            </div>
+            <div class="navbar-title"><span>🚀</span><span>Mars Base Operations</span></div>
+        </div>
+
+        <div class="dashboard-content" id="dashboard">
+            
+            <div class="panel enviroment-panel" id="panel-environment">
+                <div class="panel-title">Environment Monitor</div>
+                <div class="env-metric-container">
+                    <div class="env-label">Radiation</div>
+                    <div class="env-data-group">
+                        <div class="env-value" id="rad-value">--</div>
+                        <div class="timestamp" id="rad-time">Awaiting data...</div>
+                    </div>
+                </div>
+                <div class="env-metric-container">
+                    <div class="env-label">Life Support</div>
+                    <div class="env-data-group">
+                        <div class="env-value" id="life-value">--</div>
+                        <div class="timestamp" id="life-time">Awaiting data...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel health-panel" id="panel-health">
+                <div class="panel-title"><span>❤️</span> Base Health</div>
+                <div class="status-text" id="health-status-text">--</div>
+                <div class="timestamp" id="health-time">Awaiting API...</div>
+            </div>
+
+            <div class="panel habitat-panel" id="panel-habitat">
+                <div class="panel-title">Habitat Monitor</div>
+                <div class="grid-2x2">
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="temp-value">--</div>
+                        <div class="metric-card-label">Greenhouse Temp</div>
+                        <div class="timestamp" id="temp-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="hum-value">--</div>
+                        <div class="metric-card-label">Entrance Hum</div>
+                        <div class="timestamp" id="hum-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="co2-value">--</div>
+                        <div class="metric-card-label">Hall CO2</div>
+                        <div class="timestamp" id="co2-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="press-value">--</div>
+                        <div class="metric-card-label">Corridor Press</div>
+                        <div class="timestamp" id="press-time">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel biologic-panel" id="panel-biologic">
+                <div class="panel-title">Biologic Resource Monitor</div>
+                <div class="grid-2x2">
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="ph-value">--</div>
+                        <div class="metric-card-label">Hydroponic pH</div>
+                        <div class="timestamp" id="ph-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="voc-value">--</div>
+                        <div class="metric-card-label">Air VOC</div>
+                        <div class="timestamp" id="voc-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="pm25-value">--</div>
+                        <div class="metric-card-label">Air PM2.5</div>
+                        <div class="timestamp" id="pm25-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="water-value">--</div>
+                        <div class="metric-card-label">Water Tank Lvl</div>
+                        <div class="timestamp" id="water-time">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel infrastructure-panel" id="panel-infrastructure">
+                <div class="panel-title">⚙️ Infrastructure Monitor</div>
+                <div class="grid-5">
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="solar-value">--</div>
+                        <div class="metric-card-label">Solar Array</div>
+                        <div class="timestamp" id="solar-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="bus-value">--</div>
+                        <div class="metric-card-label">Power Bus</div>
+                        <div class="timestamp" id="bus-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="cons-value">--</div>
+                        <div class="metric-card-label">Consumption</div>
+                        <div class="timestamp" id="cons-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="therm-value">--</div>
+                        <div class="metric-card-label">Thermal Loop</div>
+                        <div class="timestamp" id="therm-time">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-card-value" id="airlock-value">--</div>
+                        <div class="metric-card-label">Airlock</div>
+                        <div class="timestamp" id="airlock-time">--</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        // 1. CHIAMATA REST PER L'HEALTH STATUS
+        async function fetchHealthStatus() {
+            try {
+                const response = await fetch('http://localhost:8080/health', {
+                    method: 'GET',
+                    headers: { 'accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const statusText = data.status || "UNKNOWN"; 
+                    
+                    document.getElementById('health-status-text').innerText = statusText.toUpperCase();
+                    
+                    const healthPanel = document.getElementById('panel-health');
+                    if (statusText.toLowerCase() === 'ok') {
+                        healthPanel.style.backgroundColor = 'var(--panel-bg-health)';
+                    } else {
+                        healthPanel.style.backgroundColor = 'var(--warn-color)';
+                    }
+
+                    document.getElementById('health-time').innerText = "Last check: " + new Date().toLocaleTimeString();
+                } else {
+                    console.error("Errore HTTP fetch health:", response.status);
+                }
+            } catch (error) {
+                console.error("Errore di connessione a /health:", error);
+                document.getElementById('health-status-text').innerText = "ERROR";
+                document.getElementById('panel-health').style.backgroundColor = 'var(--warn-color)';
+            }
+        }
+
+        fetchHealthStatus();
+        setInterval(fetchHealthStatus, 5000);
+
+        // 2. FUNZIONE ANIMAZIONE
+        function updateDOMElement(id, valueText) {
+            const el = document.getElementById(id);
+            if (el && el.innerText !== valueText) {
+                el.innerText = valueText;
+                el.classList.remove('update-flash');
+                void el.offsetWidth; 
+                el.classList.add('update-flash');
+            }
+        }
+
+        // 3. MAPPA AGGIORNATA
+        const sourceMap = {
+            // Habitat
+            'greenhouse_temperature': { valId: 'temp-value', timeId: 'temp-time', metricTarget: 'temperature' },
+            'entrance_humidity':      { valId: 'hum-value', timeId: 'hum-time', metricTarget: 'humidity' },
+            'co2_hall':               { valId: 'co2-value', timeId: 'co2-time', metricTarget: 'co2' },
+            'corridor_pressure':      { valId: 'press-value', timeId: 'press-time', metricTarget: 'pressure' },
+            
+            // Environment
+            'mars/telemetry/radiation':    { valId: 'rad-value', timeId: 'rad-time' }, 
+            'mars/telemetry/life_support': { valId: 'life-value', timeId: 'life-time', metricTarget: 'oxygen_pct' }, 
+            
+            // Biologic
+            'hydroponic_ph':    { valId: 'ph-value', timeId: 'ph-time', metricTarget: 'ph' },
+            'air_quality_voc':  { valId: 'voc-value', timeId: 'voc-time' },
+            'air_quality_pm25': { valId: 'pm25-value', timeId: 'pm25-time', metricTarget: 'pm2.5' },
+            'water_tank_level': { valId: 'water-value', timeId: 'water-time', metricTarget: 'level_pct' },
+
+            // Infrastructure (NUOVI)
+            'mars/telemetry/solar_array':       { valId: 'solar-value', timeId: 'solar-time', metricTarget: 'power_kw' },
+            'mars/telemetry/power_bus':         { valId: 'bus-value', timeId: 'bus-time', metricTarget: 'power_kw' }, // o voltage_v
+            'mars/telemetry/power_consumption': { valId: 'cons-value', timeId: 'cons-time', metricTarget: 'power_kw' },
+            'mars/telemetry/thermal_loop':      { valId: 'therm-value', timeId: 'therm-time', metricTarget: 'temperature_c' },
+            'mars/telemetry/airlock':           { valId: 'airlock-value', timeId: 'airlock-time', metricTarget: 'cycles_per_hour' }
+        };
+
+        socket.on('telemetry_update', function(data) {
+            const sourceId = data.source_id;
+            const config = sourceMap[sourceId];
+
+            if (config && data.metrics && data.metrics.length > 0) {
+                let targetMetric = data.metrics[0];
+                if (config.metricTarget) {
+                    const found = data.metrics.find(m => m.name === config.metricTarget);
+                    if (found) targetMetric = found;
+                }
+
+                const timeString = data.timestamp 
+                    ? new Date(data.timestamp).toLocaleTimeString() 
+                    : new Date().toLocaleTimeString();
+
+                const valore = typeof targetMetric.value === 'number' ? targetMetric.value.toFixed(2) : targetMetric.value;
+                const stringaDisplay = targetMetric.unit ? `${valore} ${targetMetric.unit}` : valore;
+                
+                updateDOMElement(config.valId, stringaDisplay);
+                
+                const timeEl = document.getElementById(config.timeId);
+                if(timeEl) timeEl.innerText = timeString;
+            }
+        });
+
+        socket.on('connect', () => console.log('Connesso al Server Flask (WebSockets)!'));
         socket.on('disconnect', () => console.log('Disconnesso dal Server Flask.'));
     </script>
 </body>

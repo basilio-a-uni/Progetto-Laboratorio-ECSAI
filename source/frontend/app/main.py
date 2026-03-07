@@ -119,6 +119,14 @@ def manage_rules():
 
 
 
+@app.route("/sensors-actuators")
+def sensors_actuators():
+    # Per ora renderizziamo solo la pagina statica. 
+    # In futuro potresti voler fare una GET al tuo motore per caricare lo stato iniziale degli attuatori
+    return render_template("sensors_actuators.html")
+
+
+
 if __name__ == "__main__":
     # Avviamo il consumer RabbitMQ in un thread in background
     socketio.start_background_task(rabbitmq_consumer)
