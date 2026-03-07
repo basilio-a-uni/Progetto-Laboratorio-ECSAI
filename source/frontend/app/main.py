@@ -118,7 +118,30 @@ def toggle_rule(rule_id):
 
 @app.route("/sensors-actuators")
 def sensors_actuators():
-    return render_template("sensors_actuators.html")
+    sensors_list = []
+    actuators_list = []
+    try:
+        resp_s = requests.get(f"{ENGINE_URL}/sensors", timeout=2)
+        if resp_s.status_code == 200:
+            sensors_list = resp_s.json() # <-- Nessuna traduzione necessaria, ora i dati sono già perfetti!
+        
+        resp_a = requests.get(f"{ENGINE_URL}/actuators", timeout=2)
+        if resp_a.status_code == 200:
+            actuators_list = resp_a.json()
+    except Exception as e:
+        print(f"Errore connessione engine: {e}")
+
+    return render_template("sensors_actuators.html", sensors=sensors_list, actuators=actuators_list)
+
+@app.route("/actuators/<actuator_id>/toggle", methods=["POST"])
+def proxy_actuator_toggle(actuator_id):
+    try:
+        payload = request.json 
+        response = requests.post(f"{ENGINE_URL}/actuators/{actuator_id}/toggle", json=payload, timeout=5)
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        return jsonify({"status": "error"}), 500
+
 
 if __name__ == "__main__":
     # Avviamo il consumer RabbitMQ in un thread in background
