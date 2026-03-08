@@ -105,6 +105,16 @@ def delete_rule(rule_id):
         print(f"Errore delete regola: {e}")
         return jsonify({"status": "error"}), 500
 
+@app.route("/rules/update", methods=['POST'])
+def update_rule():
+    rule_data = request.json
+
+    try:
+        response = requests.post(f"{ENGINE_URL}/rules/update", json=rule_data, timeout=5)
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"Errore di invio regola: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/rules/<int:rule_id>/toggle", methods=["POST"])
 def toggle_rule(rule_id):
@@ -118,6 +128,17 @@ def toggle_rule(rule_id):
         print(f"Errore toggle regola: {e}")
         return jsonify({"status": "error"}), 500
 
+@app.route('/rules/history', methods=['GET'])
+def get_history():
+    rules_history = []
+    try:
+        response = requests.get(f"{ENGINE_URL}/rules/history", timeout=5)
+        if response.status_code == 200:
+            rules_history = response.json()
+    except Exception as e:
+        print(f"Errore nel recupero regole: {e}")
+
+    return render_template("rules.html", existing_rules=rules_history)
 # ==========================================
 
 @app.route("/sensors-actuators")

@@ -138,6 +138,23 @@ def toggle_rule(rule_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/rules/history', methods=['GET'])
+def get_history():
+    result = []
+    for sensor in state.current_rules:
+        for r in state.current_rules[sensor]:
+            if r.triggered_at:
+                result.append({
+                    "id": r.id,  
+                    "sensor_name": r.sensor_name,
+                    "metric": r.metric,
+                    "operator": r.operator,
+                    "sensor_target_value": r.sensor_target_value,
+                    "triggered_at": r.triggered_at
+                })
+    return jsonify(result)
+    
+
 # --- NUOVI ENDPOINT PER SENSORI E ATTUATORI ---
 
 @app.route('/sensors', methods=['GET'])
@@ -147,6 +164,8 @@ def get_sensors():
     source_ids = set(state.sensor_data.keys()) | set(state.current_rules.keys())
     
     for s_id in source_ids:
+        print(sensors)
+        print(s_id)
         if s_id.startswith('mars/telemetry/'):
             source_type = 'telemetry'
         else:
@@ -189,7 +208,6 @@ def toggle_actuator(actuator_id):
         
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "error", "message": "Actuator not found"}), 404
-
 
 
 @app.route('/telemetry/latest', methods=['GET'])

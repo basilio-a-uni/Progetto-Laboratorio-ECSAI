@@ -1,6 +1,7 @@
 from collections import defaultdict
 import sqlite3
 import os
+import time
 
 class Rule():
     def __init__(self, data):
@@ -14,6 +15,7 @@ class Rule():
             self.actuator_name = data[5]
             self.actuator_set_value = data[6]
             self.enabled = bool(data[7])
+            self.triggered_at = None
         elif type(data) == dict:
             self.id = data['id']
             self.sensor_name = data['sensor_name']
@@ -23,6 +25,7 @@ class Rule():
             self.actuator_name = data['actuator_name']
             self.actuator_set_value = data['actuator_set_value']
             self.enabled = bool(data["enabled"])
+            self.triggered_at = None
 
     def is_not_respected(self, value):
         if self.operator == ">":
@@ -42,7 +45,6 @@ class State():
     def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None):
         self.sensor_data = sensor_data or {}
         self.current_rules = current_rules or defaultdict(list)
-        self.triggered_rules_history = triggered_rules_history or set()
         self.current_actuators_status = current_actuators_status or {}
         self.on_actuator_change = on_actuator_change
 
@@ -55,7 +57,7 @@ class State():
         rows = cur.fetchall()
 
         for row in rows:
-            self.current_rules[row[0]].append(Rule(row))
+            self.current_rules[row[1]].append(Rule(row))
     
     def load_persistent_actuators(self):
         # temporary TODO (maybe?): add persistance to actuators
@@ -99,7 +101,7 @@ class State():
         for sensor_name, rules in self.current_rules.items():
             self.current_rules[sensor_name] = [r for r in rules if r.id != rule_id]
 
-    def modify_rule(self, rule_data):
+    def update_rule(self, rule_data):
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()
 
@@ -147,16 +149,12 @@ class State():
                 continue
             for metric in data.get("metrics", []):
                 if self.current_actuators_status.get(rule.actuator_name) != rule.actuator_set_value:
-                    self.triggered_rules_history.add(rule)
-                    print("TRIGGERED A RULE")
-                    print(self.triggered_rules_history)
+                    rule.triggered_at = time.time()
                     print(f"[Broken rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
                     self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
                     
                     if self.on_actuator_change:
-                            self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
+                        self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
                 else:
-                    self.triggered_rules_history.add(rule)
-                    print(self.triggered_rules_history)
-                    print("TRIGGERED A RULE")
+                    rule.triggered_at = time.time()
                     print("[Broken rule] Actuator was already to set value")
