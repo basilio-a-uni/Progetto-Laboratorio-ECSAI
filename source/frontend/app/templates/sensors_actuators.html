@@ -452,21 +452,22 @@
 
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base | Sensors & Actuators</title>
     <style>
         :root {
-            --bg-color-main: #020117; 
-            --bg-color-body: #110D2C; 
-            --bg-sidebar: #2A56C6; 
-            --bg-content: #E2E8F0; 
+            --bg-color-main: #020117;
+            --bg-color-body: #110D2C;
+            --bg-sidebar: #2A56C6;
+            --bg-content: #E2E8F0;
             --text-main: #ffffff;
             --text-dark: #1e293b;
-            --accent: #2A56C6; 
+            --accent: #2A56C6;
             --ok-color: #35D01A;
-            --off-color: #f97316; 
+            --off-color: #f97316;
             --warn-color: #ef4444;
             --neutral-color: #3b82f6;
         }
@@ -483,23 +484,45 @@
         }
 
         /* --- SIDEBAR (Uniformata a rules.html) --- */
-        .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; border-right: 1px solid #110D2C; }
-        
-        /* --- MAIN WRAPPER & NAVBAR (Uniformata a rules.html) --- */
-        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-body); min-width: 0; }
-        
-        .navbar { 
-            height: 60px; 
-            min-height: 60px; /* Forza l'altezza minima */
-            flex-shrink: 0;   /* Impedisce al flexbox di schiacciarla */
-            padding: 0 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background-color: var(--bg-color-body); 
-            border-bottom: 1px solid #110D2C; 
+        .sidebar {
+            width: 70px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 1px solid #110D2C;
         }
-        .navbar-links { display: flex; gap: 20px; }
+
+        /* --- MAIN WRAPPER & NAVBAR (Uniformata a rules.html) --- */
+        .main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color-body);
+            min-width: 0;
+        }
+
+        .navbar {
+            height: 60px;
+            min-height: 60px;
+            /* Forza l'altezza minima */
+            flex-shrink: 0;
+            /* Impedisce al flexbox di schiacciarla */
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color-body);
+            border-bottom: 1px solid #110D2C;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
         .navbar-link {
             position: relative;
             text-decoration: none;
@@ -508,7 +531,11 @@
             font-size: 0.9em;
             transition: color 0.3s ease;
         }
-        .navbar-link.active { color: #ffffff; }
+
+        .navbar-link.active {
+            color: #ffffff;
+        }
+
         .navbar-link.active::after {
             content: "";
             position: absolute;
@@ -520,7 +547,14 @@
             box-shadow: 0 0 10px #00ff88;
             border-radius: 2px;
         }
-        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
+
+        .navbar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
 
         /* --- CONTENUTO PRINCIPALE --- */
         .content-area {
@@ -532,63 +566,245 @@
             display: grid;
             grid-template-columns: 1.5fr 1fr;
             gap: 25px;
-            overflow: hidden; 
+            overflow: hidden;
             color: var(--text-dark);
         }
 
         /* --- COLONNA SENSORI --- */
-        .panel { 
-            background: white; border-radius: 15px; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #cbd5e1;
-            height: 100%; box-sizing: border-box; min-height: 0; 
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            height: 100%;
+            box-sizing: border-box;
+            min-height: 0;
         }
-        .panel-title { margin-top: 0; color: var(--bg-sidebar); font-size: 1.4em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        
-        .search-bar { background-color: #ffffff; border-radius: 25px; display: flex; align-items: center; padding: 5px 20px; margin-bottom: 20px; border: 1px solid #cbd5e1; flex-shrink: 0; }
-        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; outline: none; font-size: 1em; color: var(--text-dark); }
-        
-        .table-header { display: grid; grid-template-columns: 1.5fr 1fr 1fr; font-weight: bold; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; text-transform: uppercase; font-size: 0.85em; flex-shrink: 0; }
-        
-        .scroll-list { overflow-y: auto; flex-grow: 1; margin-top: 10px; padding-right: 10px; }
-        .scroll-list::-webkit-scrollbar { width: 8px; }
-        .scroll-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        .scroll-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .scroll-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .group-label { padding: 15px 10px 5px 10px; color: var(--accent); font-weight: bold; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #e2e8f0; margin-top: 10px; }
-        .list-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 15px 10px; align-items: center; border-bottom: 1px solid #f1f5f9; transition: background-color 0.3s; }
-        .name-cell { font-weight: 600; color: var(--text-dark); word-break: break-all; padding-right: 10px; }
-        
-        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75em; font-weight: bold; text-align: center; color: white; width: fit-content; text-transform: uppercase; transition: all 0.3s;}
-        .status-ok { background-color: var(--ok-color); }
-        .status-warn { background-color: var(--warn-color); }
-        .status-neutral { background-color: var(--neutral-color); }
+        .panel-title {
+            margin-top: 0;
+            color: var(--bg-sidebar);
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-bar {
+            background-color: #ffffff;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 5px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+            flex-shrink: 0;
+        }
+
+        .search-bar input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            outline: none;
+            font-size: 1em;
+            color: var(--text-dark);
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            font-weight: bold;
+            padding: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            flex-shrink: 0;
+        }
+
+        .scroll-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-top: 10px;
+            padding-right: 10px;
+        }
+
+        .scroll-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scroll-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .scroll-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .scroll-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .group-label {
+            padding: 15px 10px 5px 10px;
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-top: 10px;
+        }
+
+        .list-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            padding: 15px 10px;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.3s;
+        }
+
+        .name-cell {
+            font-weight: 600;
+            color: var(--text-dark);
+            word-break: break-all;
+            padding-right: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            width: fit-content;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .status-ok {
+            background-color: var(--ok-color);
+        }
+
+        .status-warn {
+            background-color: var(--warn-color);
+        }
+
+        .status-neutral {
+            background-color: var(--neutral-color);
+        }
 
         /* --- COLONNA ATTUATORI & PIANETI --- */
-        .right-column { display: flex; flex-direction: column; gap: 20px; min-height: 0; height: 100%; }
-        
-        .actuators-card { background-color: var(--bg-sidebar); border-radius: 20px; padding: 25px; color: white; flex-shrink: 0; }
-        .act-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .act-row:last-child { border-bottom: none; }
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 0;
+            height: 100%;
+        }
 
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--ok-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        .actuators-card {
+            background-color: var(--bg-sidebar);
+            border-radius: 20px;
+            padding: 25px;
+            color: white;
+            flex-shrink: 0;
+        }
 
-        .planet-box { flex-grow: 1; background: #cbd5e1; border-radius: 20px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #b1bccd; min-height: 150px; }
-        .planet-img { width: 140px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
+        .act-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .act-row:last-child {
+            border-bottom: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--ok-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .planet-box {
+            flex-grow: 1;
+            background: var(--bg-content);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            min-height: 150px;
+        }
+
+        .planet-img {
+            width: 450px;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar">
         <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission" style="width: 32px; height: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission"
+                style="width: 32px; height: 32px; padding: 10px;">
         </div>
         <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings" style="width: 32px; height: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings"
+                style="width: 32px; height: 32px; padding: 10px;">
         </div>
     </div>
 
@@ -600,7 +816,8 @@
                 <a href="{{ url_for('sensors_actuators') }}" class="navbar-link active">Sensors & Actuators</a>
             </div>
             <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket" style="width: 24px; height: 24px;">
+                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket"
+                    style="width: 24px; height: 24px;">
                 <span>Mars Base Operations</span>
             </div>
         </div>
@@ -608,37 +825,40 @@
         <div class="content-area">
             <div class="panel">
                 <h2 class="panel-title">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" style="width: 24px; filter: brightness(0) saturate(100%) invert(26%) sepia(87%) border-right(216deg) saturate(1915%) hue-rotate(211deg) brightness(91%) contrast(101%);">
+                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}"
+                        style="width: 24px; filter: brightness(0) saturate(100%) invert(26%) sepia(87%) border-right(216deg) saturate(1915%) hue-rotate(211deg) brightness(91%) contrast(101%);">
                     Mission Sensors
                 </h2>
                 <div class="search-bar">
-                    <input type="text" id="sensorInput" onkeyup="searchSensors()" placeholder="Search active telemetry...">
+                    <input type="text" id="sensorInput" onkeyup="searchSensors()"
+                        placeholder="Search active telemetry...">
                 </div>
                 <div class="table-header">
                     <span>Source ID</span>
                     <span>Type</span>
                     <span>Status</span>
                 </div>
-                
+
                 <div class="scroll-list" id="sensorList">
-                    
+
                     <div class="group-label">REST Polling</div>
                     {% for sensor in sensors if sensor.source_type == 'rest' %}
                     <div class="list-row" data-source-id="{{ sensor.source_id }}">
                         <span class="name-cell">{{ sensor.source_id }}</span>
                         <span style="color: #64748b; font-size: 0.9em;">{{ sensor.source_type | upper }}</span>
-                        
+
                         {% set s_lower = sensor.status | lower %}
                         {% if s_lower == 'ok' %}
-                            <div class="status-badge status-ok">{{ sensor.status }}</div>
+                        <div class="status-badge status-ok">{{ sensor.status }}</div>
                         {% elif s_lower == 'warning' %}
-                            <div class="status-badge status-warn">{{ sensor.status }}</div>
+                        <div class="status-badge status-warn">{{ sensor.status }}</div>
                         {% else %}
-                            <div class="status-badge status-neutral">{{ sensor.status }}</div>
+                        <div class="status-badge status-neutral">{{ sensor.status }}</div>
                         {% endif %}
                     </div>
                     {% else %}
-                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No REST sensors active.</span></div>
+                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No REST sensors
+                            active.</span></div>
                     {% endfor %}
 
                     <div class="group-label" style="margin-top: 20px;">Telemetry Streams</div>
@@ -646,20 +866,21 @@
                     <div class="list-row" data-source-id="{{ sensor.source_id }}">
                         <span class="name-cell">{{ sensor.source_id }}</span>
                         <span style="color: #64748b; font-size: 0.9em;">{{ sensor.source_type | upper }}</span>
-                        
+
                         {% set s_lower = sensor.status | lower %}
                         {% if s_lower == 'ok' %}
-                            <div class="status-badge status-ok">{{ sensor.status }}</div>
+                        <div class="status-badge status-ok">{{ sensor.status }}</div>
                         {% elif s_lower == 'warning' %}
-                            <div class="status-badge status-warn">{{ sensor.status }}</div>
+                        <div class="status-badge status-warn">{{ sensor.status }}</div>
                         {% else %}
-                            <div class="status-badge status-neutral">{{ sensor.status }}</div>
+                        <div class="status-badge status-neutral">{{ sensor.status }}</div>
                         {% endif %}
                     </div>
                     {% else %}
-                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No telemetry streams active.</span></div>
+                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No telemetry streams
+                            active.</span></div>
                     {% endfor %}
-                    
+
                 </div>
             </div>
 
@@ -670,21 +891,23 @@
                     <div class="act-row">
                         <span>{{ actuator.actuator_id if actuator.actuator_id else actuator.name }}</span>
                         <label class="switch">
-                            <input type="checkbox" id="toggle-{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}"
-                                   {% if actuator.state == 'ON' %}checked{% endif %} 
-                                   onchange="toggleActuator('{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}', this.checked)">
+                            <input type="checkbox"
+                                id="toggle-{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}" {% if
+                                actuator.state=='ON' %}checked{% endif %}
+                                onchange="toggleActuator('{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}', this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
                     {% else %}
-                    <div class="act-row" style="justify-content: center; color: rgba(255,255,255,0.5); font-style: italic;">
+                    <div class="act-row"
+                        style="justify-content: center; color: rgba(255,255,255,0.5); font-style: italic;">
                         No actuators connected.
                     </div>
                     {% endfor %}
                 </div>
 
                 <div class="planet-box">
-                    <img src="{{ url_for('static', filename='icons/planet_96px.png') }}" class="planet-img">
+                    <img src="{{ url_for('static', filename='icons/planet_96px.jpg') }}" class="planet-img">
                 </div>
             </div>
         </div>
@@ -700,14 +923,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ state: newState })
             })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status !== "success") {
-                    alert("Control override failed!");
-                    location.reload();
-                }
-            })
-            .catch(err => console.error("Network error:", err));
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== "success") {
+                        alert("Control override failed!");
+                        location.reload();
+                    }
+                })
+                .catch(err => console.error("Network error:", err));
         }
 
         // Funzione per la barra di ricerca
@@ -715,7 +938,7 @@
             let input = document.getElementById('sensorInput').value.toLowerCase();
             let rows = document.getElementById('sensorList').getElementsByClassName('list-row');
             for (let row of rows) {
-                if(row.querySelector('.name-cell')) {
+                if (row.querySelector('.name-cell')) {
                     let name = row.querySelector('.name-cell').textContent.toLowerCase();
                     row.style.display = name.includes(input) ? "" : "none";
                 }
@@ -725,22 +948,22 @@
         // --- GESTIONE WEBSOCKET REAL-TIME ---
         const socket = io();
 
-        socket.on('telemetry_update', function(data) {
+        socket.on('telemetry_update', function (data) {
             const sourceId = data.source_id;
             const newStatus = data.status.toLowerCase();
-            
+
             // Trova la riga corrispondente al sensore che ha mandato i dati
             const row = document.querySelector(`.list-row[data-source-id="${sourceId}"]`);
-            
+
             if (row) {
                 const badge = row.querySelector('.status-badge');
                 if (badge) {
                     // Aggiorna testo
                     badge.textContent = data.status.toUpperCase();
-                    
+
                     // Rimuove i vecchi colori
                     badge.classList.remove('status-ok', 'status-warn', 'status-neutral');
-                    
+
                     // Applica il nuovo colore
                     if (newStatus === 'ok') {
                         badge.classList.add('status-ok');
@@ -749,7 +972,7 @@
                     } else {
                         badge.classList.add('status-neutral');
                     }
-                    
+
                     // Effetto flash per confermare l'aggiornamento visivamente
                     badge.style.opacity = '0.3';
                     setTimeout(() => badge.style.opacity = '1', 200);
@@ -758,18 +981,18 @@
         });
 
         // Ascolta i cambiamenti degli attuatori in tempo reale
-        socket.on('actuator_update', function(data) {
+        socket.on('actuator_update', function (data) {
             const actuatorId = data.actuator_id;
             const newState = data.state; // "ON" o "OFF"
-            
+
             // Trova l'interruttore corretto
             const toggleElement = document.getElementById(`toggle-${actuatorId}`);
-            
+
             if (toggleElement) {
                 // Controlliamo se va aggiornato per evitare loop infiniti
                 const isCurrentlyChecked = toggleElement.checked;
                 const shouldBeChecked = (newState === "ON");
-                
+
                 if (isCurrentlyChecked !== shouldBeChecked) {
                     toggleElement.checked = shouldBeChecked;
                     console.log(`[WebSocket] L'attuatore ${actuatorId} è scattato su ${newState} in automatico!`);
@@ -778,4 +1001,5 @@
         });
     </script>
 </body>
+
 </html>
