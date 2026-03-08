@@ -265,22 +265,23 @@
 
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base | Rule Management</title>
     <style>
         :root {
-            --bg-color-main: #020117; 
-            --bg-color-body: #110D2C; 
-            --bg-sidebar: #2A56C6; 
-            --bg-content: #E2E8F0; 
-            --card-header-bg: #3B65D9; 
+            --bg-color-main: #020117;
+            --bg-color-body: #110D2C;
+            --bg-sidebar: #2A56C6;
+            --bg-content: #E2E8F0;
+            --card-header-bg: #3B65D9;
             --text-main: #ffffff;
             --text-dark: #1e293b;
-            --accent: #2A56C6; 
+            --accent: #2A56C6;
             --ok-color: #35D01A;
-            --off-color: #f97316; 
+            --off-color: #f97316;
         }
 
         body {
@@ -295,13 +296,40 @@
         }
 
         /* --- SIDEBAR (Uniformata) --- */
-        .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; border-right: 1px solid #110D2C; }
-        
+        .sidebar {
+            width: 70px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 1px solid #110D2C;
+        }
+
         /* --- MAIN WRAPPER & NAVBAR --- */
-        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-body); }
-        
-        .navbar { height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-color-body); border-bottom: 1px solid #110D2C; }
-        .navbar-links { display: flex; gap: 20px; }
+        .main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color-body);
+        }
+
+        .navbar {
+            height: 60px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color-body);
+            border-bottom: 1px solid #110D2C;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+
         .navbar-link {
             position: relative;
             text-decoration: none;
@@ -310,7 +338,11 @@
             font-size: 0.9em;
             transition: color 0.3s ease;
         }
-        .navbar-link.active { color: #ffffff; }
+
+        .navbar-link.active {
+            color: #ffffff;
+        }
+
         .navbar-link.active::after {
             content: "";
             position: absolute;
@@ -322,7 +354,14 @@
             box-shadow: 0 0 10px #00ff88;
             border-radius: 2px;
         }
-        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
+
+        .navbar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
 
         /* --- CONTENUTO PRINCIPALE --- */
         .content-area {
@@ -336,34 +375,66 @@
         }
 
         /* --- TOP BAR (Search & Add) --- */
-        .top-action-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
-        .search-bar { 
-            flex-grow: 1; 
-            background-color: #ffffff; 
-            border-radius: 25px; 
-            display: flex; 
-            align-items: center; 
+        .top-action-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            background-color: #ffffff;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
             padding: 5px 20px;
             border: 1px solid #cbd5e1;
         }
-        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; font-size: 1em; outline: none; color: var(--text-dark); }
-        .btn-add-circle { 
-            width: 45px; height: 45px; border-radius: 50%; border: none; 
-            background-color: var(--bg-sidebar); cursor: pointer; 
-            display: flex; justify-content: center; align-items: center;
+
+        .search-bar input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            font-size: 1em;
+            outline: none;
+            color: var(--text-dark);
+        }
+
+        .btn-add-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--bg-sidebar);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             transition: transform 0.2s;
         }
-        .btn-add-circle:hover { transform: scale(1.1); }
+
+        .btn-add-circle:hover {
+            transform: scale(1.1);
+        }
 
         /* --- CARDS REGOLE --- */
-        .rules-list { display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; }
+        .rules-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
         .rule-card {
             background-color: white;
             border: 2px solid #cbd5e1;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+
         .rule-header {
             background-color: #f8fafc;
             padding: 12px 20px;
@@ -372,44 +443,173 @@
             align-items: center;
             border-bottom: 1px solid #e2e8f0;
         }
-        .rule-title { font-size: 1.1em; font-weight: bold; margin: 0; color: var(--bg-sidebar); }
-        .rule-actions { display: flex; align-items: center; gap: 12px; }
-        .action-btn { 
-            background: none; border: none; cursor: pointer; padding: 5px; 
-            display: flex; align-items: center; opacity: 0.7; transition: opacity 0.2s;
+
+        .rule-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 0;
+            color: var(--bg-sidebar);
         }
-        .action-btn:hover { opacity: 1; }
-        
-        .rule-body { padding: 20px; font-size: 1.1em; line-height: 1.6; }
-        .badge { background-color: #e2e8f0; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; color: #334155; }
+
+        .rule-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .action-btn:hover {
+            opacity: 1;
+        }
+
+        .rule-body {
+            padding: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .badge {
+            background-color: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #334155;
+        }
 
         /* --- TOGGLE SWITCH --- */
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--ok-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--ok-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
 
         /* --- FORM --- */
-        .form-panel { background-color: white; padding: 25px; border-radius: 15px; border: 1px solid #cbd5e1; }
-        .form-panel h2 { margin-top: 0; color: var(--bg-sidebar); display: flex; align-items: center; gap: 10px; font-size: 1.4em; }
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #64748b; font-weight: bold; font-size: 0.85em; text-transform: uppercase; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background-color: #f8fafc; box-sizing: border-box; }
-        .btn-submit { background-color: var(--bg-sidebar); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 1em; width: 100%; margin-top: 20px; font-weight: bold; }
+        .form-panel {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #cbd5e1;
+        }
 
-        .empty-state { text-align: center; color: #94a3b8; padding: 60px; font-size: 1.1em; background: white; border-radius: 15px; border: 2px dashed #cbd5e1; }
+        .form-panel h2 {
+            margin-top: 0;
+            color: var(--bg-sidebar);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #64748b;
+            font-weight: bold;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            background-color: var(--bg-sidebar);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 60px;
+            font-size: 1.1em;
+            background: white;
+            border-radius: 15px;
+            border: 2px dashed #cbd5e1;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar">
         <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission" style="width: 32px; height: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission"
+                style="width: 32px; height: 32px; padding: 10px;">
         </div>
         <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings" style="width: 32px; height: 32px; padding: 10px;">
+            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings"
+                style="width: 32px; height: 32px; padding: 10px;">
         </div>
     </div>
 
@@ -421,20 +621,24 @@
                 <a href="{{ url_for('sensors_actuators') }}" class="navbar-link">Sensors & Actuators</a>
             </div>
             <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket" style="width: 24px; height: 24px;">
+                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket"
+                    style="width: 24px; height: 24px;">
                 <span>Mars Base Operations</span>
             </div>
         </div>
 
         <div class="content-area">
-            
+
             <div class="top-action-bar">
                 <div class="search-bar">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" alt="Search" style="width: 20px; height: 20px; opacity: 0.5;">
-                    <input type="text" placeholder="Search mission protocols (rules)...">
+                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" alt="Search"
+                        style="width: 20px; height: 20px; opacity: 0.5;">
+                    <input type="text" id="rule-search" placeholder="Search mission protocols (rules)...">
                 </div>
-                <button class="btn-add-circle" onclick="document.getElementById('add-rule-form').scrollIntoView({behavior: 'smooth'})">
-                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}" alt="Add" style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
+                <button class="btn-add-circle"
+                    onclick="document.getElementById('add-rule-form').scrollIntoView({behavior: 'smooth'})">
+                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}" alt="Add"
+                        style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
                 </button>
             </div>
 
@@ -445,23 +649,28 @@
                         <h3 class="rule-title">{{ rule.sensor_name | replace('_', ' ') | title }} Protocol</h3>
                         <div class="rule-actions">
                             <button class="action-btn" onclick="deleteRule('{{ rule.id }}')" title="Delete">
-                                <img src="{{ url_for('static', filename='icons/trash_52px.png') }}" style="width: 20px; height: 20px;">
+                                <img src="{{ url_for('static', filename='icons/trash_52px.png') }}"
+                                    style="width: 20px; height: 20px;">
                             </button>
                             <button class="action-btn" title="Edit">
-                                <img src="{{ url_for('static', filename='icons/pencil_48px.png') }}" style="width: 20px; height: 20px;">
+                                <img src="{{ url_for('static', filename='icons/pencil_48px.png') }}"
+                                    style="width: 20px; height: 20px;">
                             </button>
                             <label class="switch">
-                                <input type="checkbox" {% if rule.enabled %}checked{% endif %} onchange="toggleRuleStatus('{{ rule.id }}', this.checked)">
+                                <input type="checkbox" {% if rule.enabled %}checked{% endif %}
+                                    onchange="toggleRuleStatus('{{ rule.id }}', this.checked)">
                                 <span class="slider"></span>
                             </label>
                         </div>
                     </div>
                     <div class="rule-body">
-                        IF <span class="badge">{{ rule.sensor_name }}</span> 
-                        <span style="font-weight: bold; color: var(--bg-sidebar);">{{ rule.operator }}</span> 
-                        <span class="badge">{{ rule.sensor_target_value }}</span> 
-                        THEN set <span class="badge">{{ rule.actuator_name }}</span> 
-                        to <strong style="color: {{ 'var(--ok-color)' if rule.actuator_set_value == 'ON' else 'var(--off-color)' }}">{{ rule.actuator_set_value }}</strong>
+                        IF <span class="badge">{{ rule.sensor_name }}</span>
+                        <span style="font-weight: bold; color: var(--bg-sidebar);">{{ rule.operator }}</span>
+                        <span class="badge">{{ rule.sensor_target_value }}</span>
+                        THEN set <span class="badge">{{ rule.actuator_name }}</span>
+                        to <strong
+                            style="color: {{ 'var(--ok-color)' if rule.actuator_set_value == 'ON' else 'var(--off-color)' }}">{{
+                            rule.actuator_set_value }}</strong>
                     </div>
                 </div>
                 {% else %}
@@ -473,7 +682,8 @@
 
             <div class="form-panel" id="add-rule-form-container">
                 <h2>
-                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}" style="width: 24px; height: 24px; filter: contrast(0);"> 
+                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}"
+                        style="width: 24px; height: 24px; filter: contrast(0);">
                     Create New Rule
                 </h2>
                 <form id="add-rule-form">
@@ -490,10 +700,10 @@
                             <label>Operator</label>
                             <select name="operator">
                                 <option value=">">Greater than (>)</option>
-                                <option value="<">Less than (<)</option>
+                                <option value="<">Less than (<)< /option>
                                 <option value="==">Equal to (==)</option>
                                 <option value=">=">Greater or Equal (>=)</option>
-                                <option value="<=">Less or Equal (<=)</option>
+                                <option value="<=">Less or Equal (<=)< /option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -520,11 +730,28 @@
     </div>
 
     <script>
-        const API_BASE_URL = ''; 
+        const API_BASE_URL = '';
+
+        document.getElementById('rule-search').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase(); // Quello che scrivi
+            const rules = document.querySelectorAll('.rule-card'); // Tutte le card
+
+            rules.forEach(card => {
+                // Recuperiamo il testo della card (titolo, sensore, attuatore)
+                const text = card.innerText.toLowerCase();
+
+                // Se il termine cercato è presente nel testo della card...
+                if (text.includes(searchTerm)) {
+                    card.style.display = "block"; // Mostra
+                } else {
+                    card.style.display = "none";  // Nascondi
+                }
+            });
+        });
 
         // Gestione invio nuova regola
-        document.getElementById('add-rule-form').addEventListener('submit', function(e) {
-            e.preventDefault(); 
+        document.getElementById('add-rule-form').addEventListener('submit', function (e) {
+            e.preventDefault();
             const formData = new FormData(this);
             const ruleData = Object.fromEntries(formData.entries());
             ruleData.sensor_target_value = parseFloat(ruleData.sensor_target_value);
@@ -534,18 +761,18 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ruleData)
             })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === "success" || data.status === undefined) { 
-                    location.reload(); 
-                } else {
-                    alert('Errore durante la creazione della regola.');
-                }
-            })
-            .catch(error => {
-                console.error('Errore:', error);
-                alert('Impossibile contattare il server.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success" || data.status === undefined) {
+                        location.reload();
+                    } else {
+                        alert('Errore durante la creazione della regola.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    alert('Impossibile contattare il server.');
+                });
         });
 
         // Toggle Status
@@ -555,39 +782,40 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ enabled: isEnabled })
             })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status !== "success") {
-                    alert('Errore durante l\'aggiornamento.');
-                    location.reload(); 
-                }
-            })
-            .catch(error => {
-                console.error('Errore:', error);
-                location.reload();
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== "success") {
+                        alert('Errore durante l\'aggiornamento.');
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    location.reload();
+                });
         }
 
         // Delete Rule
         function deleteRule(ruleId) {
-            if(confirm("Eliminare definitivamente questo protocollo di missione?")) {
+            if (confirm("Eliminare definitivamente questo protocollo di missione?")) {
                 fetch(`${API_BASE_URL}/rules/${ruleId}`, {
                     method: 'DELETE'
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if(data.status === "success") {
-                        const card = document.getElementById(`rule-${ruleId}`);
-                        if(card) {
-                            card.style.opacity = '0';
-                            setTimeout(() => card.remove(), 300);
-                        } else {
-                            location.reload();
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            const card = document.getElementById(`rule-${ruleId}`);
+                            if (card) {
+                                card.style.opacity = '0';
+                                setTimeout(() => card.remove(), 300);
+                            } else {
+                                location.reload();
+                            }
                         }
-                    }
-                });
+                    });
             }
         }
     </script>
 </body>
+
 </html>

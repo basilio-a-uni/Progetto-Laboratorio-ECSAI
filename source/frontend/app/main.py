@@ -124,6 +124,29 @@ def toggle_rule(rule_id):
 def sensors_actuators():
     sensors_list = []
     actuators_list = []
+    descriptions_map = {
+        # Sensori Ambientali e Moduli
+        "corridor_pressure": "Pressione atmosferica nei condotti di collegamento tra i moduli.",
+        "air_quality_voc": "Concentrazione di composti organici volatili nell'aria abitabile.",
+        "air_quality_pm25": "Monitoraggio polveri sottili e particolato in sospensione.",
+        "entrance_humidity": "Livello di umidità relativa rilevato nel modulo d'ingresso.",
+        "co2_hall": "Concentrazione di anidride carbonica nel corridoio principale.",
+        "water_tank_level": "Livello di riempimento dei serbatoi idrici centrali.",
+        "test": "Canale di test per la verifica dei protocolli di comunicazione.",
+        
+        # Coltivazioni e Biosfera
+        "hydroponic_ph": "Acidità della soluzione nutritiva nel sistema idroponico.",
+        "greenhouse_temperature": "Temperatura ambiente all'interno della serra botanica.",
+        
+        # Stream di Telemetria Avanzata (MQTT/Telemetry)
+        "mars/telemetry/life_support": "Stato operativo del sistema primario di supporto vitale.",
+        "mars/telemetry/thermal_loop": "Monitoraggio del fluido termovettore per il riscaldamento base.",
+        "mars/telemetry/solar_array": "Efficienza e output energetico dei pannelli fotovoltaici.",
+        "mars/telemetry/airlock": "Integrità strutturale e stato della camera di compensazione.",
+        "mars/telemetry/power_consumption": "Assorbimento energetico totale istantaneo della base.",
+        "mars/telemetry/radiation": "Rilevamento radiazioni ionizzanti e attività solare esterna.",
+        "mars/telemetry/power_bus": "Distribuzione del carico elettrico sulla rete principale.",
+    }
     try:
         resp_s = requests.get(f"{ENGINE_URL}/sensors", timeout=2)
         if resp_s.status_code == 200:
@@ -135,7 +158,7 @@ def sensors_actuators():
     except Exception as e:
         print(f"Errore connessione engine: {e}")
 
-    return render_template("sensors_actuators.html", sensors=sensors_list, actuators=actuators_list)
+    return render_template("sensors_actuators.html", sensors=sensors_list, actuators=actuators_list, descriptions=descriptions_map)
 
 @app.route("/actuators/<actuator_id>/toggle", methods=["POST"])
 def proxy_actuator_toggle(actuator_id):

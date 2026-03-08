@@ -617,7 +617,7 @@
 
         .table-header {
             display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr;
+            grid-template-columns: 1.5fr 1fr 1fr 2fr;
             font-weight: bold;
             padding: 10px;
             border-bottom: 2px solid #e2e8f0;
@@ -665,11 +665,20 @@
 
         .list-row {
             display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr;
+            grid-template-columns: 1.5fr 1fr 1fr 2fr;
             padding: 15px 10px;
             align-items: center;
             border-bottom: 1px solid #f1f5f9;
             transition: background-color 0.3s;
+        }
+
+        .list-row span {
+            white-space: normal;
+            /* Permette al testo di andare a capo */
+            word-wrap: break-word;
+            /* Spezza le parole troppo lunghe */
+            line-height: 1.4;
+            /* Migliora la leggibilità se su più righe */
         }
 
         .name-cell {
@@ -845,6 +854,7 @@
                     <span>Source ID</span>
                     <span>Type</span>
                     <span>Status</span>
+                    <span>Description</span>
                 </div>
 
                 <div class="scroll-list" id="sensorList">
@@ -863,6 +873,11 @@
                         {% else %}
                         <div class="status-badge status-neutral">{{ sensor.status }}</div>
                         {% endif %}
+
+                        <span style="font-size: 0.85em; color: #475569; font-style: italic;">
+                            {{ descriptions.get(sensor.source_id, 'Monitoraggio telemetrico standard.')}}
+                        </span>
+
                     </div>
                     {% else %}
                     <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No REST sensors
@@ -883,6 +898,11 @@
                         {% else %}
                         <div class="status-badge status-neutral">{{ sensor.status }}</div>
                         {% endif %}
+
+                        <span style="font-size: 0.85em; color: #475569; font-style: italic;">
+                            {{ descriptions.get(sensor.source_id, 'Monitoraggio telemetrico standard.')}}
+                        </span>
+
                     </div>
                     {% else %}
                     <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No telemetry streams
@@ -946,10 +966,8 @@
             let input = document.getElementById('sensorInput').value.toLowerCase();
             let rows = document.getElementById('sensorList').getElementsByClassName('list-row');
             for (let row of rows) {
-                if (row.querySelector('.name-cell')) {
-                    let name = row.querySelector('.name-cell').textContent.toLowerCase();
-                    row.style.display = name.includes(input) ? "" : "none";
-                }
+                let rowText = row.textContent.toLowerCase();
+                row.style.display = rowText.includes(input) ? "" : "none";
             }
         }
 
