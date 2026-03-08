@@ -2,11 +2,12 @@ import pika
 import json
 import os
 import time
-import threading 
+import threading
 from flask import Flask, request, jsonify 
 
 import database
-from entities import State, Rule 
+
+from entities import State, Rule
 
 app = Flask(__name__)
 
@@ -14,7 +15,7 @@ def get_connection():
     rabbit_host = os.getenv('RABBITMQ_HOST', 'localhost')
     while True:
         try:
-            print("Testing connection to RabbitMQ...")
+            print("Testing connection")
             connection = pika.BlockingConnection(
                 pika.ConnectionParameters(host=rabbit_host)
             )
@@ -24,20 +25,27 @@ def get_connection():
             print(" [!] RabbitMQ not yet started. Retry in 5 seconds.")
             time.sleep(5)
 
+
 def inject_callback(state):
     def callback(ch, method, properties, body):
         data = json.loads(body)
-        print(f"Ricevuto dati : {data}")
+        print(f"Ricevuto dati : {data}\n")
+
         state.update(data)
+        
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
     return callback
 
 def start_consuming(state):
     connection = get_connection()
     channel = connection.channel()
+
     channel.exchange_declare(exchange='mars_telemetry_exchange', exchange_type='fanout')
+    
     result = channel.queue_declare(queue='', exclusive=True)
     queue_name = result.method.queue
+    
     channel.queue_bind(exchange='mars_telemetry_exchange', queue=queue_name)
 
     channel.basic_consume(
@@ -46,7 +54,7 @@ def start_consuming(state):
         auto_ack=False
     )
     
-    print("[*] Processing Engine in ascolto su RabbitMQ...")
+    print("[*] Processing Engine in ascolto su RabbitMQ")
     channel.start_consuming()
 
 # NUOVO: Funzione per pubblicare l'aggiornamento degli attuatori su RabbitMQ
@@ -106,6 +114,16 @@ def delete_rule(rule_id):
     try:
         state.delete_rule(rule_id) 
         return jsonify({"status": "success", "message": f"Rule {rule_id} deleted"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/rules/update', methods=['POST'])
+def update_rule():
+    data = request.json
+    try:
+        state.update_rule(data)
+        return jsonify({"status": "success", "message": f"Rule {rule_id} updated"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -182,18 +200,16 @@ def get_latest_telemetry():
     """Restituisce tutta la cache degli ultimi messaggi ricevuti"""
     return jsonify(state.sensor_data)
 
-
 if __name__ == "__main__":
     database.init_db()
-    
     global state
-    # NUOVO: Passiamo la callback per notificare i cambiamenti
-    state = State(on_actuator_change=publish_actuator_update) 
+
+    state = State(on_actuator_change=publish_actuator_update)
     state.load_persistent_rules()
     state.load_persistent_actuators()
-    
+
     rabbit_thread = threading.Thread(target=start_consuming, args=(state,), daemon=True)
     rabbit_thread.start()
-    
+
     print("[*] Processing Engine API in avvio sulla porta 8001...")
     app.run(host="0.0.0.0", port=8001)

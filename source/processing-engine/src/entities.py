@@ -3,16 +3,26 @@ import sqlite3
 import os
 
 class Rule():
-    def __init__(self, row):
-        # Gli indici sono slittati di 1 perché row[0] ora è l'ID
-        self.id = row[0]
-        self.sensor_name = row[1]
-        self.metric = row[2]
-        self.operator = row[3]
-        self.sensor_target_value = row[4]
-        self.actuator_name = row[5]
-        self.actuator_set_value = row[6]
-        self.enabled = bool(row[7]) # Rinominato in 'enabled'
+    def __init__(self, data):
+        print(data)
+        if type(data) == list or type(data) == tuple:
+            self.id = data[0]
+            self.sensor_name = data[1]
+            self.metric = data[2]
+            self.operator = data[3]
+            self.sensor_target_value = data[4]
+            self.actuator_name = data[5]
+            self.actuator_set_value = data[6]
+            self.enabled = bool(data[7])
+        elif type(data) == dict:
+            self.id = data['id']
+            self.sensor_name = data['sensor_name']
+            self.metric = data['metric'] 
+            self.operator = data['operator']
+            self.sensor_target_value = data['sensor_target_value']
+            self.actuator_name = data['actuator_name']
+            self.actuator_set_value = data['actuator_set_value']
+            self.enabled = bool(data["enabled"])
 
     def is_not_respected(self, value):
         if self.operator == ">":
@@ -29,24 +39,25 @@ class Rule():
             raise ValueError(f"Operator '{self.operator}' is not a valid operator for a rule")
 
 class State():
-    # Sistemato l'init per evitare la mutabilità dei default di Python (defaultdict e dict vuoti)
     def __init__(self, sensor_data=None, current_rules=None, current_actuators_status=None, on_actuator_change=None):
         self.sensor_data = sensor_data or {}
         self.current_rules = current_rules or defaultdict(list)
         self.current_actuators_status = current_actuators_status or {}
-        self.on_actuator_change = on_actuator_change # Callback per avvisare chi ascolta
+        self.on_actuator_change = on_actuator_change
+
 
     def load_persistent_rules(self):
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()
+
         cur.execute("SELECT * FROM rules")
         rows = cur.fetchall()
+
         for row in rows:
-            rule = Rule(row)
-            self.current_rules[rule.sensor_name].append(rule)
-        conn.close()
+            self.current_rules[row[0]].append(Rule(row))
     
     def load_persistent_actuators(self):
+        # temporary TODO (maybe?): add persistance to actuators
         self.current_actuators_status = {
             "cooling_fan": "OFF",
             "entrance_humidifier": "OFF",
@@ -58,24 +69,23 @@ class State():
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()
 
-        # Inseriamo i dati senza l'ID (lo genera SQLite con AUTOINCREMENT)
         cur.execute("""
             INSERT INTO rules (sensor_name, metric, operator, sensor_target_value, actuator_name, actuator_set_value, enabled) 
             VALUES(?, ?, ?, ?, ?, ?, ?)
         """, (rule_data['sensor_name'], rule_data['metric'], rule_data['operator'], 
               rule_data['sensor_target_value'], rule_data['actuator_name'], 
               rule_data['actuator_set_value'], True))
-        
-        # Prendiamo l'ID appena generato
+
         new_id = cur.lastrowid
+
         conn.commit()
+        cur.close()
         conn.close()
 
-        # Ricreiamo la riga per istanziare l'oggetto Rule
-        row = (new_id, rule_data['sensor_name'], rule_data['metric'], rule_data['operator'], 
-               rule_data['sensor_target_value'], rule_data['actuator_name'], rule_data['actuator_set_value'], True)
-        new_rule = Rule(row)
-        self.current_rules[new_rule.sensor_name].append(new_rule)
+        rule_data['id'] = new_id
+        rule_data['enabled'] = True
+        new_rule = Rule(rule_data)
+        self.current_rules[new_rule.sensor_name].append(new_rule)        
 
     # NUOVO: Cancella una regola dal DB e dalla memoria
     def delete_rule(self, rule_id):
@@ -87,6 +97,26 @@ class State():
 
         for sensor_name, rules in self.current_rules.items():
             self.current_rules[sensor_name] = [r for r in rules if r.id != rule_id]
+
+    def modify_rule(self, rule_data):
+        conn = sqlite3.connect(os.getenv("DATABASE_URL"))
+        cur = conn.cursor()
+
+        cur.execute("""
+            UPDATE rules
+            SET sensor_name=?, metric=?, operator=?, sensor_target_value=?, actuator_name=?, actuator_set_value=?, enabled=?
+            WHERE id=?
+        """, (rule_data['sensor_name'], rule_data['metric'], rule_data['operator'], 
+              rule_data['sensor_target_value'], rule_data['actuator_name'], 
+              rule_data['actuator_set_value'], rule_data['enabled'], rule_data['id']
+            )
+        )
+        conn.commit()
+        conn.close()
+
+        updated_rule = Rule(rule_data)
+        self.current_rules[updated_rule.sensor_name] = [r for r in self.current_rules[updated_rule.sensor_name] if r.id != updated_rule.id] + updated_rule
+
 
     # NUOVO: Abilita/Disabilita la regola nel DB e nella memoria
     def toggle_rule(self, rule_id, is_enabled):
@@ -107,8 +137,7 @@ class State():
     def update(self, data):
         source_id = data.get("source_id")
         if not source_id: return
-        
-        # Aggiorna i dati grezzi del sensore (ti serve per la rotta /sensors)
+
         self.sensor_data[source_id] = data
 
         rules_to_check = self.get_rules_about(source_id)
@@ -116,12 +145,10 @@ class State():
             if not rule.enabled:
                 continue
             for metric in data.get("metrics", []):
-                # ... (il resto della logica invariata fino al cambio attuatore) ...
                     if self.current_actuators_status.get(rule.actuator_name) != rule.actuator_set_value:
                         print(f"[Broken rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
                         self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
                         
-                        # NUOVO: Chiama la callback se esiste
                         if self.on_actuator_change:
                             self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
                     else:
