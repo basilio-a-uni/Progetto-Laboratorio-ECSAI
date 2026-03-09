@@ -561,6 +561,20 @@
         // 6. GESTIONE WEBSOCKET
         socket.on('telemetry_update', processTelemetryData);
         
+        // POPUP DI NOTIFICA REGOLA TRIGGERATA
+        socket.on('rule_triggered', (data) => {
+            showNotification({
+                type: 'rule',
+                title: 'Rule triggered',
+                message: `${data.sensor_name}.${data.metric} ${data.operator} ${data.sensor_target_value} → ${data.actuator_name} set to ${data.actuator_set_value} (actual: ${data.actual_value})`,
+                sourceId: data.sensor_name,
+                timestamp: data.timestamp,
+                dedupeKey: `rule:${data.rule_id}:${data.actuator_set_value}`,
+                cooldownMs: 4000,
+                durationMs: 7000
+            });
+        });
+
         // AVVISI DI CONNESSIONE E WARNING
         socket.on('connect', () => {
             console.log('Connesso al Server Flask (WebSockets)!');

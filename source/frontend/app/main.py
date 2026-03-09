@@ -40,6 +40,7 @@ def rabbitmq_consumer():
     # Leghiamo la nostra coda privata al megafono (Exchange)
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=queue_name)
 
+    # Aggiunto il callback per quando regola triggerata
     def callback(ch, method, properties, body):
         try:
             data = json.loads(body.decode('utf-8'))
@@ -47,6 +48,8 @@ def rabbitmq_consumer():
             # NUOVO: Smistiamo il messaggio in base al tipo
             if data.get("type") == "actuator_update":
                 socketio.emit('actuator_update', data)
+            elif data.get("type") == "rule_triggered":
+                socketio.emit('rule_triggered', data)
             else:
                 socketio.emit('telemetry_update', data)
                 

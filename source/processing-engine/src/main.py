@@ -104,6 +104,38 @@ def publish_rule_triggered(rule, actual_value):
         print(f"Errore pubblicazione evento rule_triggered: {e}")
 
 
+<<<<<<< HEAD
+=======
+# Funzione per pubblicare l'evento di regola attivata
+def publish_rule_triggered(rule, actual_value):
+    try:
+        connection = get_connection()
+        channel = connection.channel()
+        channel.exchange_declare(exchange='mars_telemetry_exchange', exchange_type='fanout')
+
+        message = {
+            "type": "rule_triggered",
+            "rule_id": rule.id,
+            "sensor_name": rule.sensor_name,
+            "metric": rule.metric,
+            "operator": rule.operator,
+            "sensor_target_value": rule.sensor_target_value,
+            "actual_value": actual_value,
+            "actuator_name": rule.actuator_name,
+            "actuator_set_value": rule.actuator_set_value,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+        channel.basic_publish(
+            exchange='mars_telemetry_exchange',
+            routing_key='',
+            body=json.dumps(message)
+        )
+        connection.close()
+    except Exception as e:
+        print(f"Errore pubblicazione evento rule_triggered: {e}")
+
+>>>>>>> 179418b040d18abbcd23148cddece6a5e3501641
 # --- ROTTE PER IL FRONTEND ---
 
 @app.route('/rules', methods=['GET', 'POST'])
