@@ -152,7 +152,7 @@ class State():
                 if rule.is_not_respected(metric["value"]):
                     if self.current_actuators_status.get(rule.actuator_name) != rule.actuator_set_value:
                         self.triggered_rules_history[rule.id] = {"triggered_at": time.time(), "last_trigger_value": metric["value"]}
-                        print(f"[Broken rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
+                        print(f"[Triggered rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
                         self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
                         
                         if self.on_rule_triggered:
@@ -162,4 +162,4 @@ class State():
                             self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
                     else:
                         self.triggered_rules_history[rule.id] = {"triggered_at": time.time(), "last_trigger_value": metric["value"]}
-                        print("[Broken rule] Actuator was already to set value")
+                        print("[Triggered rule] Actuator was already to set value")

@@ -119,7 +119,7 @@
                 .then(data => {
                     const container = document.getElementById('history-container');
                     if (!data || data.length === 0) {
-                        container.innerHTML = '<div class="empty-state">No rules broken yet. Systems nominal.</div>';
+                        container.innerHTML = '<div class="empty-state">No rules triggered yet.</div>';
                         return;
                     }
 
@@ -129,15 +129,13 @@
                     container.innerHTML = data.map(rule => `
                         <div class="history-card">
                             <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: var(--danger); font-weight: bold; font-size: 1.1em;">PROTOCOL BREACH: Rule #${rule.id}</span>
+                                <span style="color: var(--danger); font-weight: bold; font-size: 1.1em;">Rule #${rule.id} currently triggered</span>
                                 <span style="color: #64748b; font-size: 0.85em; font-weight: bold;">${formatTime(rule.triggered_at)}</span>
                             </div>
-                            <div style="line-height: 1.6; color: var(--text-dark); font-size: 1.05em;">
-                                Rule <span class="badge">#${rule.id}</span> broken because of value 
-                                <span class="highlight-value">${rule.last_trigger_value}</span>.
+                            <div style="line-height: 1.6; color: var(--text-dark); font-size: 1.05em;"> 
+                                Operator <span class="badge">${rule.operator} ${rule.sensor_target_value}</span> on <span style="font-weight: bold; color: var(--bg-sidebar);">${rule.sensor_name.replace(/_/g, ' ')}</span>
+                                (live value: <span class="highlight-value">${rule.last_trigger_value}</span>)
                                 <br>
-                                Threshold: <span class="badge">${rule.operator} ${rule.sensor_target_value}</span> 
-                                on <span style="font-weight: bold; color: var(--bg-sidebar);">${rule.sensor_name.replace(/_/g, ' ')}</span>.
                             </div>
                         </div>
                     `).join('');
