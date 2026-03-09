@@ -211,8 +211,8 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Sensor Name</label>
-                        <!-- <input type="text" name="sensor_name" id="field-sensor" required placeholder="greenhouse_temp"> -->
-                        <select name="sensor_name" id="field-sensor">
+                        <select name="sensor_name" id="field-sensor" required onchange="updateMetricList()">
+                            <option value="" disabled selected>Select a sensor</option>
                             <option value="greenhouse_temperature">Greenhouse Temperature</option>
                             <option value="entrance_humidity">Entrance Humidity</option>
                             <option value="co2_hall">CO2 Hall</option>
@@ -221,28 +221,19 @@
                             <option value="corridor_pressure">Corridor Pressure</option>
                             <option value="air_quality_pm25">Air Quality PM2.5</option>
                             <option value="air_quality_voc">Air Quality VOC</option>
+                            <option value="mars/telemetry/radiation">Radiation</option>
+                            <option value="mars/telemetry/life_support">Life Support</option>
+                            <option value="mars/telemetry/solar_array">Solar Array</option>
+                            <option value="mars/telemetry/power_bus">Power Bus</option>
+                            <option value="mars/telemetry/power_consumption">Power Consumption</option>
+                            <option value="mars/telemetry/thermal_loop">Thermal Loop</option>
+                            <option value="mars/telemetry/airlock">Airlock</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Metric</label>
-                        <!-- <input type="text" name="metric" id="field-metric" required placeholder="temp_c"> -->
-                        <select name="metric" id="field-metric">
-                            <option value="C">°C</option>
-                            <option value="%">%</option>
-                            <option value="percent">percent</option>
-                            <option value="L/min">L/min</option>
-                            <option value="kW">kW</option>
-                            <option value="V">V</option>
-                            <option value="A">A</option>
-                            <option value="kWh">kWh</option>
-                            <option value="cycles/hour">cycles/hour</option>
-                            <option value="ppm">ppm</option>
-                            <option value="kPa">kPa</option>
-                            <option value="L">L</option>
-                            <option value="pH">pH</option>
-                            <option value="ug/m3">ug/m3</option>
-                            <option value="ppb">ppb</option>
-                            <option value="uSv/h">uSv/h</option>
+                        <select name="metric" id="field-metric" required disabled>
+                            <option value="" disabled selected>Select sensor first</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -261,7 +252,6 @@
                     </div>
                     <div class="form-group">
                         <label>Actuator</label>
-                        <!-- <input type="text" name="actuator_name" id="field-actuator" required placeholder="cooling_fan"> -->
                         <select name="actuator_name" id="field-actuator">
                             <option value="cooling_fan">Cooling Fan</option>
                             <option value="entrance_humidifier">Entrance Humidifier</option>
@@ -285,6 +275,50 @@
     <script>
         const API_BASE_URL = '';
 
+        const sensorMetrics = {
+            "greenhouse_temperature": ["temperature_c"],
+            "entrance_humidity": ["humidity_pct"],
+            "co2_hall": ["co2_ppm"],
+            "hydroponic_ph": ["ph"],
+            "water_tank_level": ["level_pct", "level_liters"],
+            "corridor_pressure": ["pressure_kpa"],
+            "air_quality_pm25": ["pm1", "pm2.5", "pm10"],
+            "air_quality_voc": ["voc_ppb", "co2e_ppm"],
+            "mars/telemetry/radiation": ["radiation_uSv_h"],
+            "mars/telemetry/life_support": ["oxygen_percent"],
+            "mars/telemetry/solar_array": ["power_kw", "voltage_v", "current_a", "cumulative_kwh"],
+            "mars/telemetry/power_bus": ["power_kw", "voltage_v", "current_a", "cumulative_kwh"],
+            "mars/telemetry/power_consumption": ["power_kw", "voltage_v", "current_a", "cumulative_kwh"],
+            "mars/telemetry/thermal_loop": ["temperature_c", 'flow_l_min'],
+            "mars/telemetry/airlock": ["cycles_per_hour"]
+        };
+
+        function updateMetricList() {
+            const sensorSelect = document.getElementById('field-sensor');
+            const metricSelect = document.getElementById('field-metric');
+            const selectedSensor = sensorSelect.value;
+
+            metricSelect.innerHTML = "";
+
+            if (selectedSensor && sensorMetrics[selectedSensor]) {
+                metricSelect.disabled = false;
+                sensorMetrics[selectedSensor].forEach(metric => {
+                    const option = document.createElement("option");
+                    option.value = metric;
+                    option.textContent = metric;
+                    metricSelect.appendChild(option);
+                });
+            } else {
+                metricSelect.disabled = true;
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "Select sensor first";
+                option.disabled = true;
+                option.selected = true;
+                metricSelect.appendChild(option);
+            }
+        }
+
         function openModal(ruleId = null) {
             const form = document.getElementById('rule-form');
             form.reset();
@@ -299,6 +333,10 @@
                 
                 document.getElementById('field-id').value = data.id;
                 document.getElementById('field-sensor').value = data.sensor_name;
+                
+                // Aggiorna le metriche prima di selezionare quella corretta
+                updateMetricList();
+                
                 document.getElementById('field-metric').value = data.metric;
                 document.getElementById('field-operator').value = data.operator;
                 document.getElementById('field-value').value = data.sensor_target_value;
@@ -307,6 +345,7 @@
             } else {
                 document.getElementById('modal-title').innerText = "Deploy Protocol";
                 document.getElementById('btn-submit-text').innerText = "Deploy to Base";
+                updateMetricList(); // Disabilita correttamente il campo metrica
             }
             
             document.getElementById('rule-modal').style.display = 'flex';
@@ -321,7 +360,6 @@
             const formData = new FormData(this);
             const ruleData = Object.fromEntries(formData.entries());
 
-            // --- FIX: Controlliamo se la stringa è vuota, non se è undefined! ---
             const isUpdate = ruleData.id && ruleData.id.trim() !== ""; 
             
             if (isUpdate) {
@@ -331,7 +369,6 @@
                     ruleData.enabled = originalData.enabled;
                 }
             } else {
-                // Se è una nuova regola, rimuoviamo l'ID altrimenti il backend si confonde
                 delete ruleData.id; 
             }
             
@@ -347,8 +384,8 @@
                 return res.json();
             })
             .then(() => {
-                closeModal(); // Chiude gentilmente il popup
-                location.reload(); // Ricarica per mostrare i nuovi dati
+                closeModal();
+                location.reload();
             })
             .catch(err => {
                 console.error('Errore:', err);
@@ -356,7 +393,6 @@
             });
         });
 
-        // Search logic
         document.getElementById('rule-search').addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
             document.querySelectorAll('.rule-card').forEach(card => {
