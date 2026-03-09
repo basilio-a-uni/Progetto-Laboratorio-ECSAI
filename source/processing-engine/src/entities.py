@@ -40,12 +40,13 @@ class Rule():
             raise ValueError(f"Operator '{self.operator}' is not a valid operator for a rule")
 
 class State():
-    def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None):
+    def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None, on_rule_triggered=None):
         self.sensor_data = sensor_data or {}
         self.current_rules = current_rules or defaultdict(list)
         self.triggered_rules_history = triggered_rules_history or {}
         self.current_actuators_status = current_actuators_status or {}
         self.on_actuator_change = on_actuator_change
+        self.on_rule_triggered = on_rule_triggered
 
 
     def load_persistent_rules(self):
@@ -153,6 +154,9 @@ class State():
                         print(f"[Broken rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
                         self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
                         
+                        if self.on_rule_triggered:
+                            self.on_rule_triggered(rule, metric["value"])
+
                         if self.on_actuator_change:
                             self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
                     else:
