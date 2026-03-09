@@ -123,6 +123,7 @@ def update_rule():
     data = request.json
     try:
         state.update_rule(data)
+        del state.triggered_rules_history[int(data["id"])]
         return jsonify({"status": "success", "message": f"Rule {data['id']} updated"}), 200
     except Exception as e:
         print("Update error:", str(e))
