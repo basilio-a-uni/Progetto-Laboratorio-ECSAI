@@ -21,8 +21,8 @@ def get_rabbit_connection():
             connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_HOST))
             return connection
         except pika.exceptions.AMQPConnectionError:
-            print("[!] RabbitMQ non disponibile per il frontend, riprovo tra 2s...")
-            time.sleep(2)
+            print(" [!] RabbitMQ not yet started. Retry in 5 seconds.")
+            time.sleep(5)
 
 def rabbitmq_consumer():
     """Gira in background e ascolta il Fanout Exchange"""
