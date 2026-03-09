@@ -55,7 +55,7 @@ class State():
 
         cur.execute("SELECT * FROM rules")
         rows = cur.fetchall()
-
+        self.current_rules = defaultdict(list)
         for row in rows:
             self.current_rules[row[1]].append(Rule(row))
     
@@ -117,9 +117,7 @@ class State():
         conn.commit()
         conn.close()
 
-        updated_rule = Rule(rule_data)
-        self.current_rules[updated_rule.sensor_name] = [r for r in self.current_rules[updated_rule.sensor_name] if r.id != updated_rule.id] + updated_rule
-
+        self.load_persistent_rules()
 
     # NUOVO: Abilita/Disabilita la regola nel DB e nella memoria
     def toggle_rule(self, rule_id, is_enabled):

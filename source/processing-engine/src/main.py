@@ -123,8 +123,10 @@ def update_rule():
     data = request.json
     try:
         state.update_rule(data)
-        return jsonify({"status": "success", "message": f"Rule {rule_id} updated"}), 200
+        return jsonify({"status": "success", "message": f"Rule {data['id']} updated"}), 200
     except Exception as e:
+        print("Update error:", str(e))
+
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # NUOVO: Attiva/Disattiva regola

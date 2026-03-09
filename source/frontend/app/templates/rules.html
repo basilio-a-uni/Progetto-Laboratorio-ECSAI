@@ -1,268 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars Base | Rule Management</title>
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --panel-bg: #1e293b;
-            --text-main: #f8fafc;
-            --accent: #ea580c;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        header { text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 30px; }
-        .form-panel { background-color: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #94a3b8; font-weight: bold;}
-        input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #334155; background-color: #0f172a; color: white; box-sizing: border-box; }
-        button { background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1.1em; width: 100%; margin-top: 10px;}
-        button:hover { background-color: #c2410c; }
-        .nav-link { display: block; text-align: center; margin-top: 20px; color: var(--accent); text-decoration: none; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>⚙️ Automation Rules</h1>
-    </header>
-
-    <div class="form-panel">
-        <form action="/rules" method="POST">
-            <div class="form-group">
-                <label>Sensor Name (es. mars/telemetry/greenhouse_temperature)</label>
-                <input type="text" name="sensor_name" required placeholder="mars/telemetry/...">
-            </div>
-            
-            <div class="form-group">
-                <label>Metric (es. temperature_c)</label>
-                <input type="text" name="metric" required>
-            </div>
-
-            <div class="form-group">
-                <label>Operator</label>
-                <select name="operator">
-                    <option value=">">Greater than (>)</option>
-                    <option value="<">Less than (<)</option>
-                    <option value="=">Equal to (=)</option>
-                    <option value=">=">Greater or Equal (>=)</option>
-                    <option value="<=">Less or Equal (<=)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Target Value</label>
-                <input type="number" step="0.01" name="sensor_target_value" required>
-            </div>
-
-            <div class="form-group">
-                <label>Actuator to Trigger</label>
-                <select name="actuator_name">
-                    <option value="cooling_fan">Cooling Fan</option>
-                    <option value="habitat_heater">Habitat Heater</option>
-                    <option value="entrance_humidifier">Entrance Humidifier</option>
-                    <option value="hall_ventilation">Hall Ventilation</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Actuator Action</label>
-                <select name="actuator_set_value">
-                    <option value="ON">Turn ON</option>
-                    <option value="OFF">Turn OFF</option>
-                </select>
-            </div>
-
-            <button type="submit">Deploy New Rule</button>
-        </form>
-    </div>
-
-    <a href="/" class="nav-link">← Back to Dashboard</a>
-
-</body>
-</html> -->
-
-
-
-<!-- ---------------------------------- -->
-
-
-<!-- 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars Base | Rule Management</title>
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --panel-bg: #1e293b;
-            --text-main: #f8fafc;
-            --accent: #ea580c;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-            max-width: 800px; /* Allargato un po' per far stare la tabella */
-            margin: 0 auto;
-        }
-        header { text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 30px; }
-        
-        /* Stili per la Tabella */
-        .rules-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 40px;
-            background-color: var(--panel-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .rules-table th, .rules-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #334155;
-        }
-        .rules-table th {
-            background-color: #0f172a;
-            color: var(--accent);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
-        .rules-table tr:last-child td { border-bottom: none; }
-        .badge {
-            background-color: #0f172a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: #38bdf8;
-        }
-
-        .form-panel { background-color: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #94a3b8; font-weight: bold;}
-        input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #334155; background-color: #0f172a; color: white; box-sizing: border-box; }
-        button { background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1.1em; width: 100%; margin-top: 10px;}
-        button:hover { background-color: #c2410c; }
-        .nav-link { display: block; text-align: center; margin-top: 20px; color: var(--accent); text-decoration: none; }
-        h2 { border-left: 4px solid var(--accent); padding-left: 10px; margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>⚙️ Automation Rules</h1>
-    </header>
-
-    <h2>📋 Active Rules</h2>
-    <table class="rules-table">
-        <thead>
-            <tr>
-                <th>Sensor / Metric</th>
-                <th>Condition</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for rule in existing_rules %}
-            <tr>
-                <td>
-                    <small style="display:block; color:#94a3b8;">{{ rule.sensor_name }}</small>
-                    <strong>{{ rule.metric }}</strong>
-                </td>
-                <td>
-                    <span class="badge">{{ rule.operator }} {{ rule.sensor_target_value }}</span>
-                </td>
-                <td>
-                    Set <span style="color:#fbbf24">{{ rule.actuator_name }}</span> to <strong>{{ rule.actuator_set_value }}</strong>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3" style="text-align: center; color: #94a3b8; padding: 30px;">
-                    No rules deployed yet. Use the form below to create one.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>➕ Add New Rule</h2>
-    <div class="form-panel">
-        <form action="/rules" method="POST">
-            <div class="form-group">
-                <label>Sensor Name</label>
-                <input type="text" name="sensor_name" required placeholder="e.g. greenhouse_temperature">
-            </div>
-            
-            <div class="form-group">
-                <label>Metric</label>
-                <input type="text" name="metric" required placeholder="e.g. temperature_c">
-            </div>
-
-            <div class="form-group">
-                <label>Operator</label>
-                <select name="operator">
-                    <option value=">">Greater than (>)</option>
-                    <option value="<">Less than (<)</option>
-                    <option value="=">Equal to (=)</option>
-                    <option value=">=">Greater or Equal (>=)</option>
-                    <option value="<=">Less or Equal (<=)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Target Value</label>
-                <input type="number" step="0.01" name="sensor_target_value" required>
-            </div>
-
-            <div class="form-group">
-                <label>Actuator to Trigger</label>
-                <select name="actuator_name">
-                    <option value="cooling_fan">Cooling Fan</option>
-                    <option value="habitat_heater">Habitat Heater</option>
-                    <option value="entrance_humidifier">Entrance Humidifier</option>
-                    <option value="hall_ventilation">Hall Ventilation</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Actuator Action</label>
-                <select name="actuator_set_value">
-                    <option value="ON">Turn ON</option>
-                    <option value="OFF">Turn OFF</option>
-                </select>
-            </div>
-
-            <button type="submit">Deploy New Rule</button>
-        </form>
-    </div>
-
-    <a href="/" class="nav-link">← Back to Dashboard</a>
-
-</body>
-</html> -->
-
-
-
-
-
-
-<!-- ----------------------------------------------------------- -->
-
-
-
 <!DOCTYPE html>
 <html lang="it">
 
@@ -295,7 +30,7 @@
             overflow: hidden;
         }
 
-        /* --- SIDEBAR (Uniformata) --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 70px;
             background-color: var(--bg-sidebar);
@@ -325,43 +60,11 @@
             border-bottom: 1px solid #110D2C;
         }
 
-        .navbar-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .navbar-link {
-            position: relative;
-            text-decoration: none;
-            padding: 10px 15px;
-            color: #8C8B9E;
-            font-size: 0.9em;
-            transition: color 0.3s ease;
-        }
-
-        .navbar-link.active {
-            color: #ffffff;
-        }
-
-        .navbar-link.active::after {
-            content: "";
-            position: absolute;
-            bottom: -5px;
-            left: 15%;
-            width: 70%;
-            height: 3px;
-            background-color: #00ff88;
-            box-shadow: 0 0 10px #00ff88;
-            border-radius: 2px;
-        }
-
-        .navbar-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
+        .navbar-links { display: flex; gap: 20px; }
+        .navbar-link { position: relative; text-decoration: none; padding: 10px 15px; color: #8C8B9E; font-size: 0.9em; transition: color 0.3s ease; }
+        .navbar-link.active { color: #ffffff; }
+        .navbar-link.active::after { content: ""; position: absolute; bottom: -5px; left: 15%; width: 70%; height: 3px; background-color: #00ff88; box-shadow: 0 0 10px #00ff88; border-radius: 2px; }
+        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
 
         /* --- CONTENUTO PRINCIPALE --- */
         .content-area {
@@ -374,243 +77,69 @@
             color: var(--text-dark);
         }
 
-        /* --- TOP BAR (Search & Add) --- */
-        .top-action-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .search-bar {
-            flex-grow: 1;
-            background-color: #ffffff;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            padding: 5px 20px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .search-bar input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            padding: 10px;
-            font-size: 1em;
-            outline: none;
-            color: var(--text-dark);
-        }
-
-        .btn-add-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: none;
-            background-color: var(--bg-sidebar);
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.2s;
-        }
-
-        .btn-add-circle:hover {
-            transform: scale(1.1);
-        }
+        /* --- TOP BAR --- */
+        .top-action-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+        .search-bar { flex-grow: 1; background-color: #ffffff; border-radius: 25px; display: flex; align-items: center; padding: 5px 20px; border: 1px solid #cbd5e1; }
+        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; font-size: 1em; outline: none; color: var(--text-dark); }
+        .btn-add-circle { width: 45px; height: 45px; border-radius: 50%; border: none; background-color: var(--bg-sidebar); cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+        .btn-add-circle:hover { transform: scale(1.1); }
 
         /* --- CARDS REGOLE --- */
-        .rules-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-
-        .rule-card {
-            background-color: white;
-            border: 2px solid #cbd5e1;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .rule-header {
-            background-color: #f8fafc;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .rule-title {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin: 0;
-            color: var(--bg-sidebar);
-        }
-
-        .rule-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .action-btn:hover {
-            opacity: 1;
-        }
-
-        .rule-body {
-            padding: 20px;
-            font-size: 1.1em;
-            line-height: 1.6;
-        }
-
-        .badge {
-            background-color: #e2e8f0;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-weight: bold;
-            color: #334155;
-        }
+        .rules-list { display: flex; flex-direction: column; gap: 15px; margin-bottom: 40px; }
+        .rule-card { background-color: white; border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .rule-header { background-color: #f8fafc; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .rule-title { font-size: 1.1em; font-weight: bold; margin: 0; color: var(--bg-sidebar); }
+        .rule-actions { display: flex; align-items: center; gap: 12px; }
+        .action-btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; opacity: 0.7; transition: opacity 0.2s; }
+        .action-btn:hover { opacity: 1; }
+        .rule-body { padding: 20px; font-size: 1.1em; line-height: 1.6; }
+        .badge { background-color: #e2e8f0; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; color: #334155; }
 
         /* --- TOGGLE SWITCH --- */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-        }
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked+.slider { background-color: var(--ok-color); }
+        input:checked+.slider:before { transform: translateX(22px); }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: var(--ok-color);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(22px);
-        }
-
-        /* --- FORM --- */
-        .form-panel {
-            background-color: white;
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .form-panel h2 {
-            margin-top: 0;
-            color: var(--bg-sidebar);
-            display: flex;
+        /* --- MODAL (POP-UP) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
             align-items: center;
-            gap: 10px;
-            font-size: 1.4em;
+            z-index: 1000;
         }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #64748b;
-            font-weight: bold;
-            font-size: 0.85em;
-            text-transform: uppercase;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background-color: #f8fafc;
-            box-sizing: border-box;
-        }
-
-        .btn-submit {
-            background-color: var(--bg-sidebar);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            width: 100%;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #94a3b8;
-            padding: 60px;
-            font-size: 1.1em;
-            background: white;
+        .modal-content {
+            background-color: white;
+            padding: 30px;
             border-radius: 15px;
-            border: 2px dashed #cbd5e1;
+            width: 500px;
+            max-width: 90%;
+            color: var(--text-dark);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; color: var(--bg-sidebar); }
+        .close-modal { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #64748b; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #64748b; font-weight: bold; font-size: 0.8em; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        .btn-submit { background-color: var(--bg-sidebar); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+
+        .empty-state { text-align: center; color: #94a3b8; padding: 60px; font-size: 1.1em; background: white; border-radius: 15px; border: 2px dashed #cbd5e1; }
     </style>
 </head>
 
 <body>
-
     <div class="sidebar">
-        <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission"
-                style="width: 32px; height: 32px; padding: 10px;">
-        </div>
-        <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings"
-                style="width: 32px; height: 32px; padding: 10px;">
-        </div>
+        <div class="sidebar-top"><img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" style="width: 32px; padding: 10px;"></div>
+        <div class="sidebar-bottom"><img src="{{ url_for('static', filename='icons/settings_64px.png') }}" style="width: 32px; padding: 10px;"></div>
     </div>
 
     <div class="main-wrapper">
@@ -621,201 +150,193 @@
                 <a href="{{ url_for('sensors_actuators') }}" class="navbar-link">Sensors & Actuators</a>
             </div>
             <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket"
-                    style="width: 24px; height: 24px;">
+                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" style="width: 24px;">
                 <span>Mars Base Operations</span>
             </div>
         </div>
 
         <div class="content-area">
-
             <div class="top-action-bar">
                 <div class="search-bar">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" alt="Search"
-                        style="width: 20px; height: 20px; opacity: 0.5;">
+                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" style="width: 20px; opacity: 0.5;">
                     <input type="text" id="rule-search" placeholder="Search mission protocols (rules)...">
                 </div>
-                <button class="btn-add-circle"
-                    onclick="document.getElementById('add-rule-form').scrollIntoView({behavior: 'smooth'})">
-                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}" alt="Add"
-                        style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
+                <button class="btn-add-circle" onclick="openModal()" title="Deploy New Protocol">
+                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}" style="width: 24px; filter: brightness(0) invert(1);">
                 </button>
             </div>
 
             <div class="rules-list">
                 {% for rule in existing_rules %}
-                <div class="rule-card" id="rule-{{ rule.id }}">
+                <div class="rule-card" id="rule-{{ rule.id }}" 
+                     data-json='{{ rule | tojson | safe }}'>
                     <div class="rule-header">
                         <h3 class="rule-title">{{ rule.sensor_name | replace('_', ' ') | title }} Protocol</h3>
                         <div class="rule-actions">
                             <button class="action-btn" onclick="deleteRule('{{ rule.id }}')" title="Delete">
-                                <img src="{{ url_for('static', filename='icons/trash_52px.png') }}"
-                                    style="width: 20px; height: 20px;">
+                                <img src="{{ url_for('static', filename='icons/trash_52px.png') }}" style="width: 20px;">
                             </button>
-                            <button class="action-btn" title="Edit">
-                                <img src="{{ url_for('static', filename='icons/pencil_48px.png') }}"
-                                    style="width: 20px; height: 20px;">
+                            <button class="action-btn" onclick='openModal("{{ rule.id }}")' title="Edit">
+                                <img src="{{ url_for('static', filename='icons/pencil_48px.png') }}" style="width: 20px;">
                             </button>
                             <label class="switch">
-                                <input type="checkbox" {% if rule.enabled %}checked{% endif %}
-                                    onchange="toggleRuleStatus('{{ rule.id }}', this.checked)">
+                                <input type="checkbox" {% if rule.enabled %}checked{% endif %} onchange="toggleRuleStatus('{{ rule.id }}', this.checked)">
                                 <span class="slider"></span>
                             </label>
                         </div>
                     </div>
                     <div class="rule-body">
-                        IF <span class="badge">{{ rule.sensor_name }}</span>
-                        <span style="font-weight: bold; color: var(--bg-sidebar);">{{ rule.operator }}</span>
-                        <span class="badge">{{ rule.sensor_target_value }}</span>
-                        THEN set <span class="badge">{{ rule.actuator_name }}</span>
-                        to <strong
-                            style="color: {{ 'var(--ok-color)' if rule.actuator_set_value == 'ON' else 'var(--off-color)' }}">{{
-                            rule.actuator_set_value }}</strong>
+                        IF <span class="badge">{{ rule.sensor_name }}</span> 
+                        <span style="font-weight: bold; color: var(--bg-sidebar);">{{ rule.operator }}</span> 
+                        <span class="badge">{{ rule.sensor_target_value }}</span> 
+                        THEN set <span class="badge">{{ rule.actuator_name }}</span> 
+                        to <strong style="color: {{ 'var(--ok-color)' if rule.actuator_set_value == 'ON' else 'var(--off-color)' }}">{{ rule.actuator_set_value }}</strong>
                     </div>
                 </div>
                 {% else %}
-                <div class="empty-state">
-                    <p>No active rules found in the mainframe. Use the "+" button to deploy a new one.</p>
-                </div>
+                <div class="empty-state">No active rules found in the mainframe.</div>
                 {% endfor %}
             </div>
+        </div>
+    </div>
 
-            <div class="form-panel" id="add-rule-form-container">
-                <h2>
-                    <img src="{{ url_for('static', filename='icons/plus_64px.png') }}"
-                        style="width: 24px; height: 24px; filter: contrast(0);">
-                    Create New Rule
-                </h2>
-                <form id="add-rule-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Sensor Name</label>
-                            <input type="text" name="sensor_name" required placeholder="e.g. greenhouse_temperature">
-                        </div>
-                        <div class="form-group">
-                            <label>Metric</label>
-                            <input type="text" name="metric" required placeholder="e.g. temperature_c">
-                        </div>
-                        <div class="form-group">
-                            <label>Operator</label>
-                            <select name="operator">
-                                <option value=">">Greater than (>)</option>
-                                <option value="<">Less than (<)< /option>
-                                <option value="==">Equal to (==)</option>
-                                <option value=">=">Greater or Equal (>=)</option>
-                                <option value="<=">Less or Equal (<=)< /option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Target Value</label>
-                            <input type="number" step="0.01" name="sensor_target_value" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Actuator to Trigger</label>
-                            <input type="text" name="actuator_name" required placeholder="e.g. cooling_fan">
-                        </div>
-                        <div class="form-group">
-                            <label>Actuator Action</label>
-                            <select name="actuator_set_value">
-                                <option value="ON">Turn ON</option>
-                                <option value="OFF">Turn OFF</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">Deploy Protocol to Base</button>
-                </form>
+    <div class="modal-overlay" id="rule-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Deploy Protocol</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-
+            <form id="rule-form">
+                <input type="hidden" name="id" id="field-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Sensor Name</label>
+                        <input type="text" name="sensor_name" id="field-sensor" required placeholder="greenhouse_temp">
+                    </div>
+                    <div class="form-group">
+                        <label>Metric</label>
+                        <input type="text" name="metric" id="field-metric" required placeholder="temp_c">
+                    </div>
+                    <div class="form-group">
+                        <label>Operator</label>
+                        <select name="operator" id="field-operator">
+                            <option value=">">Greater than (>)</option>
+                            <option value="<">Less than (<)</option>
+                            <option value="==">Equal to (==)</option>
+                            <option value=">=">Greater or Equal (>=)</option>
+                            <option value="<=">Less or Equal (<=)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Value</label>
+                        <input type="number" step="0.01" name="sensor_target_value" id="field-value" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Actuator</label>
+                        <input type="text" name="actuator_name" id="field-actuator" required placeholder="cooling_fan">
+                    </div>
+                    <div class="form-group">
+                        <label>Action</label>
+                        <select name="actuator_set_value" id="field-action">
+                            <option value="ON">Turn ON</option>
+                            <option value="OFF">Turn OFF</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-submit-text">Deploy to Base</button>
+            </form>
         </div>
     </div>
 
     <script>
         const API_BASE_URL = '';
 
-        document.getElementById('rule-search').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase(); // Quello che scrivi
-            const rules = document.querySelectorAll('.rule-card'); // Tutte le card
+        function openModal(ruleId = null) {
+            const form = document.getElementById('rule-form');
+            form.reset();
+            document.getElementById('field-id').value = '';
+            
+            if (ruleId) {
+                document.getElementById('modal-title').innerText = "Edit Protocol";
+                document.getElementById('btn-submit-text').innerText = "Update Protocol";
+                
+                const card = document.getElementById(`rule-${ruleId}`);
+                const data = JSON.parse(card.dataset.json);
+                
+                document.getElementById('field-id').value = data.id;
+                document.getElementById('field-sensor').value = data.sensor_name;
+                document.getElementById('field-metric').value = data.metric;
+                document.getElementById('field-operator').value = data.operator;
+                document.getElementById('field-value').value = data.sensor_target_value;
+                document.getElementById('field-actuator').value = data.actuator_name;
+                document.getElementById('field-action').value = data.actuator_set_value;
+            } else {
+                document.getElementById('modal-title').innerText = "Deploy Protocol";
+                document.getElementById('btn-submit-text').innerText = "Deploy to Base";
+            }
+            
+            document.getElementById('rule-modal').style.display = 'flex';
+        }
 
-            rules.forEach(card => {
-                // Recuperiamo il testo della card (titolo, sensore, attuatore)
-                const text = card.innerText.toLowerCase();
+        function closeModal() {
+            document.getElementById('rule-modal').style.display = 'none';
+        }
 
-                // Se il termine cercato è presente nel testo della card...
-                if (text.includes(searchTerm)) {
-                    card.style.display = "block"; // Mostra
-                } else {
-                    card.style.display = "none";  // Nascondi
-                }
-            });
-        });
-
-        // Gestione invio nuova regola
-        document.getElementById('add-rule-form').addEventListener('submit', function (e) {
+        document.getElementById('rule-form').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
             const ruleData = Object.fromEntries(formData.entries());
-            ruleData.sensor_target_value = parseFloat(ruleData.sensor_target_value);
 
-            fetch(`${API_BASE_URL}/rules`, {
+            if (ruleData.id && ruleData.id !== "") {
+                const originalCard = document.getElementById(`rule-${ruleData.id}`);
+                if (originalCard) {
+                    // Recuperiamo lo stato 'enabled' dal JSON salvato nel data-attribute della card
+                    const originalData = JSON.parse(originalCard.dataset.json);
+                    ruleData.enabled = originalData.enabled;
+                }
+            }
+            const isUpdate = ruleData.id !== undefined;
+            const endpoint = isUpdate ? `${API_BASE_URL}/rules/update` : `${API_BASE_URL}/rules`;
+            
+            fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ruleData)
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success" || data.status === undefined) {
-                        location.reload();
-                    } else {
-                        alert('Errore durante la creazione della regola.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    alert('Impossibile contattare il server.');
-                });
+            .then(res => {
+                if (!res.ok) throw new Error(`Status: ${res.status}`);
+                return res.json();
+            })
+            .then(() => location.reload())
+            .catch(err => {
+                console.error('Errore:', err);
+                alert('Errore durante il salvataggio.');
+            });
         });
 
-        // Toggle Status
-        function toggleRuleStatus(ruleId, isEnabled) {
-            fetch(`${API_BASE_URL}/rules/${ruleId}/toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled: isEnabled })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== "success") {
-                        alert('Errore durante l\'aggiornamento.');
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore:', error);
-                    location.reload();
-                });
+        // Search logic
+        document.getElementById('rule-search').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.rule-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(searchTerm) ? "block" : "none";
+            });
+        });
+
+        function deleteRule(id) {
+            if (confirm("Delete this mission protocol?")) {
+                fetch(`${API_BASE_URL}/rules/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => { if (data.status === "success") location.reload(); });
+            }
         }
 
-        // Delete Rule
-        function deleteRule(ruleId) {
-            if (confirm("Eliminare definitivamente questo protocollo di missione?")) {
-                fetch(`${API_BASE_URL}/rules/${ruleId}`, {
-                    method: 'DELETE'
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            const card = document.getElementById(`rule-${ruleId}`);
-                            if (card) {
-                                card.style.opacity = '0';
-                                setTimeout(() => card.remove(), 300);
-                            } else {
-                                location.reload();
-                            }
-                        }
-                    });
-            }
+        function toggleRuleStatus(id, enabled) {
+            fetch(`${API_BASE_URL}/rules/${id}/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled })
+            });
         }
     </script>
 </body>
-
 </html>
