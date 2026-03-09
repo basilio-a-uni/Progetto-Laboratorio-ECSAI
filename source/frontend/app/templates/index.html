@@ -578,15 +578,21 @@
         // AVVISI DI CONNESSIONE E WARNING
         socket.on('connect', () => {
             console.log('Connesso al Server Flask (WebSockets)!');
-            showNotification({
-                type: 'info',
-                title: 'Frontend connected',
-                message: 'WebSocket connection established successfully.',
-                sourceId: 'frontend',
-                durationMs: 4000
-            });
-        }); 
 
+            const alreadyShown = sessionStorage.getItem('frontend_connected_popup_shown');
+
+            if (!alreadyShown) {
+                showNotification({
+                    type: 'info',
+                    title: 'Frontend connected',
+                    message: 'WebSocket connection established successfully.',
+                    sourceId: 'frontend',
+                    durationMs: 4000
+                });
+
+                sessionStorage.setItem('frontend_connected_popup_shown', 'true');
+            }
+        });
         socket.on('disconnect', () => console.log('Disconnesso dal Server Flask.'));
     </script>
 </body>
