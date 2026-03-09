@@ -140,8 +140,8 @@ def toggle_rule(rule_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/rules/history', methods=['GET'])
-def get_history():
+@app.route('/history', methods=['GET'])
+def history():
     result = []
     for sensor in state.current_rules:
         for r in state.current_rules[sensor]:
@@ -152,7 +152,8 @@ def get_history():
                     "metric": r.metric,
                     "operator": r.operator,
                     "sensor_target_value": r.sensor_target_value,
-                    "triggered_at": r.triggered_at
+                    "triggered_at": r.triggered_at,
+                    "last_trigger_value": r.last_trigger_value
                 })
     return jsonify(result)
     

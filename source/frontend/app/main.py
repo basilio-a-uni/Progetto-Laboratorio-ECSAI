@@ -128,17 +128,17 @@ def toggle_rule(rule_id):
         print(f"Errore toggle regola: {e}")
         return jsonify({"status": "error"}), 500
 
-@app.route('/rules/history', methods=['GET'])
-def get_history():
-    rules_history = []
-    try:
-        response = requests.get(f"{ENGINE_URL}/rules/history", timeout=5)
-        if response.status_code == 200:
-            rules_history = response.json()
-    except Exception as e:
-        print(f"Errore nel recupero regole: {e}")
+@app.route('/history')
+def history():
+    return render_template("history.html")
 
-    return render_template("rules.html", existing_rules=rules_history)
+@app.route('/api/history', methods=['GET'])
+def get_history_api():
+    try:
+        response = requests.get(f"{ENGINE_URL}/history", timeout=5)
+        return jsonify(response.json()), 200
+    except:
+        return jsonify([]), 500
 # ==========================================
 
 @app.route("/sensors-actuators")
@@ -171,7 +171,7 @@ def sensors_actuators():
     try:
         resp_s = requests.get(f"{ENGINE_URL}/sensors", timeout=2)
         if resp_s.status_code == 200:
-            sensors_list = resp_s.json() # <-- Nessuna traduzione necessaria, ora i dati sono già perfetti!
+            sensors_list = resp_s.json()
         
         resp_a = requests.get(f"{ENGINE_URL}/actuators", timeout=2)
         if resp_a.status_code == 200:
@@ -205,8 +205,6 @@ def proxy_latest_telemetry():
 
 
 if __name__ == "__main__":
-    # Avviamo il consumer RabbitMQ in un thread in background
     socketio.start_background_task(rabbitmq_consumer)
     
-    # Avviamo il server Flask con supporto WebSocket
     socketio.run(app, host="0.0.0.0", port=8000, allow_unsafe_werkzeug=True)

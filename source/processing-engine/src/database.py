@@ -11,7 +11,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sensor_name TEXT,
         metric TEXT,
-        operator TEXT CHECK(operator IN ('>', '>=', '=', '<=', '<')),
+        operator TEXT CHECK(operator IN ('>', '>=', '==', '<=', '<')),
         sensor_target_value REAL,
         actuator_name TEXT,
         actuator_set_value TEXT CHECK(actuator_set_value IN ('ON', 'OFF')),

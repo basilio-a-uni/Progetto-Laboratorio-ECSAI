@@ -1,455 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars Base | Sensors & Actuators</title>
-    <style>
-        :root {
-            --bg-color-main: #020117; 
-            --bg-color-body: #110D2C; 
-            --bg-sidebar: #2A56C6; 
-            --bg-content: #E2E8F0; 
-            --text-main: #ffffff;
-            --text-dark: #1e293b;
-            --ok-color: #35D01A;
-            --warn-color: #f33a1e;
-            --accent-blue: #2A56C6;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color-main);
-            color: var(--text-main);
-            margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
-        }
-
-        /* --- SIDEBAR & NAVBAR --- */
-        .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; }
-        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-body); }
-        .navbar { height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
-        .navbar-links { display: flex; gap: 20px; }
-        .navbar-link { position: relative; text-decoration: none; padding: 10px 15px; color: #8C8B9E; font-size: 0.9em; }
-        .navbar-link.active { color: #ffffff; }
-        .navbar-link.active::after { content: ""; position: absolute; bottom: -5px; left: 15%; width: 70%; height: 3px; background-color: #00ff88; box-shadow: 0 0 10px #00ff88; border-radius: 2px; }
-        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
-
-        /* --- CONTENT AREA --- */
-        .content-area {
-            flex-grow: 1;
-            background-color: var(--bg-content);
-            margin: 0 20px 20px 0;
-            border-radius: 20px;
-            padding: 30px;
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 25px;
-            overflow: hidden;
-        }
-
-        /* --- SEZIONE SENSORI --- */
-        .sensors-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .search-bar { 
-            background-color: #cbd5e1; border-radius: 25px; display: flex; align-items: center; padding: 5px 20px; margin-bottom: 30px;
-        }
-        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; outline: none; font-size: 1em; }
-        
-        .table-header { display: grid; grid-template-columns: 1.5fr 1fr 1fr; font-size: 1.6em; font-weight: bold; padding: 0 10px 15px 10px; color: #000; }
-        .sensor-list-scroll { overflow-y: auto; flex-grow: 1; }
-        .sensor-row { 
-            display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 18px 10px; align-items: center;
-        }
-        .sensor-name-cell { display: flex; align-items: center; font-weight: 500; color: #334155; }
-        .sensor-name-cell::after { content: ""; flex-grow: 1; border-bottom: 1px solid #cbd5e1; margin-left: 10px; margin-right: 15px; }
-
-        .status-badge { 
-            padding: 6px 15px; border-radius: 20px; color: white; font-weight: bold; font-size: 0.85em; text-align: center; width: 85px;
-        }
-        .status-ok { background-color: var(--ok-color); }
-        .status-warn { background-color: var(--warn-color); }
-
-        /* --- SEZIONE ATTUATORI --- */
-        .actuators-column { display: flex; flex-direction: column; gap: 20px; }
-        .actuators-card {
-            background-color: var(--accent-blue);
-            border-radius: 25px;
-            padding: 30px;
-            color: white;
-        }
-        .act-header { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 1.6em; font-weight: bold; }
-        .actuator-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
-        
-        /* --- ILLUSTRAZIONE PIANETI --- */
-        .planets-container {
-            flex-grow: 1;
-            background-color: #d1d5db;
-            border-radius: 25px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        .planet-main { width: 180px; z-index: 2; }
-        .planet-icon { position: absolute; }
-        .p-top { top: 25px; right: 35px; width: 65px; }
-        .p-bottom { bottom: 25px; right: 45px; width: 50px; }
-
-        /* --- TOGGLE SWITCH --- */
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--ok-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
-        .actuators-card .slider { background-color: var(--warn-color); } /* Rosso se OFF su fondo blu */
-        .actuators-card input:checked + .slider { background-color: var(--ok-color); }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" style="width: 32px; padding: 10px;">
-            <img src="{{ url_for('static', filename='icons/menu_vertical_100px.png') }}" style="width: 24px; padding: 10px; cursor: pointer;">
-        </div>
-        <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" style="width: 32px; padding: 10px;">
-        </div>
-    </div>
-
-    <div class="main-wrapper">
-        <div class="navbar">
-            <div class="navbar-links">
-                <a href="{{ url_for('home') }}" class="navbar-link">Dashboard</a>
-                <a href="{{ url_for('manage_rules') }}" class="navbar-link">Rules</a>
-                <a href="{{ url_for('sensors_actuators') }}" class="navbar-link active">Sensor & Actuators</a>
-            </div>
-            <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" style="width: 24px;">
-                <span>Welcome to Mars</span>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <div class="sensors-panel">
-                <div class="search-bar">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" style="width: 20px; opacity: 0.5; margin-right: 10px;">
-                    <input type="text" id="sensorSearch" placeholder="Search sensors..." onkeyup="filterSensors()">
-                </div>
-                
-                <div class="table-header">
-                    <span>Sensor Name</span>
-                    <span>Type</span>
-                    <span>Status</span>
-                </div>
-
-                <div class="sensor-list-scroll" id="sensorList">
-                    {% for sensor in sensors %}
-                    <div class="sensor-row">
-                        <div class="sensor-name-cell">{{ sensor.name }}</div>
-                        <div style="color: #64748b;">{{ sensor.type }}</div>
-                        <div>
-                            <div class="status-badge {{ 'status-ok' if sensor.status == 'OK' else 'status-warn' }}">
-                                {{ sensor.status }}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="actuators-column">
-                <div class="actuators-card">
-                    <div class="act-header">
-                        <span>Actuator Name</span>
-                        <span>Toggle</span>
-                    </div>
-                    
-                    {% for actuator in actuators %}
-                    <div class="actuator-row">
-                        <span>{{ actuator.name }}</span>
-                        <label class="switch">
-                            <input type="checkbox" {% if actuator.state == 'ON' %}checked{% endif %} 
-                                   onchange="toggleActuator('{{ actuator.id }}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <div class="planets-container">
-                    <img src="{{ url_for('static', filename='icons/planet_96px.png') }}" class="planet-main">
-                    <img src="{{ url_for('static', filename='icons/pluto_dwarf_planet_96px.png') }}" class="planet-icon p-top">
-                    <img src="{{ url_for('static', filename='icons/planet_96px.png') }}" class="planet-icon p-bottom" style="filter: hue-rotate(160deg) scale(0.7);">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Funzione per aggiornare lo stato dell'attuatore tramite la rotta dinamica <actuator_id>
-        function toggleActuator(id, isChecked) {
-            const newState = isChecked ? "ON" : "OFF";
-            
-            fetch(`/actuators/${id}/toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state: newState })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status !== "success") {
-                    alert("Errore nell'aggiornamento dell'attuatore");
-                    location.reload(); // Ripristina lo switch se fallisce
-                }
-            })
-            .catch(err => console.error("Errore di rete:", err));
-        }
-
-        // Funzione per filtrare i sensori nella lista
-        function filterSensors() {
-            let input = document.getElementById('sensorSearch');
-            let filter = input.value.toLowerCase();
-            let rows = document.querySelectorAll('.sensor-row');
-
-            rows.forEach(row => {
-                let text = row.querySelector('.sensor-name-cell').textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? "" : "none";
-            });
-        }
-    </script>
-</body>
-</html> -->
-
-
-
-<!-- -------------------------------------------- -->
-
-
-<!-- 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars Base | Sensors & Actuators</title>
-    <style>
-        :root {
-            --bg-color-main: #020117; 
-            --bg-color-body: #110D2C; 
-            --bg-sidebar: #2A56C6; 
-            --bg-content: #E2E8F0; 
-            --text-main: #ffffff;
-            --text-dark: #1e293b;
-            --accent: #2A56C6; 
-            --ok-color: #35D01A;
-            --off-color: #f97316; 
-            --warn-color: #ef4444;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color-main);
-            color: var(--text-main);
-            margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
-        }
-
-        /* --- SIDEBAR --- */
-        .sidebar { width: 70px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px 0; border-right: 1px solid #110D2C; }
-        
-        /* --- MAIN WRAPPER & NAVBAR --- */
-        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-color-body); min-width: 0; }
-        .navbar { height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-color-body); border-bottom: 1px solid #110D2C; }
-        .navbar-links { display: flex; gap: 20px; }
-        .navbar-link { position: relative; text-decoration: none; padding: 10px 15px; color: #8C8B9E; font-size: 0.9em; transition: color 0.3s ease; }
-        .navbar-link.active { color: #ffffff; }
-        .navbar-link.active::after { content: ""; position: absolute; bottom: -5px; left: 15%; width: 70%; height: 3px; background-color: #00ff88; box-shadow: 0 0 10px #00ff88; border-radius: 2px; }
-        .navbar-title { display: flex; align-items: center; gap: 10px; font-size: 1.2em; font-weight: bold; }
-
-        /* --- CONTENUTO PRINCIPALE --- */
-        .content-area {
-            flex-grow: 1;
-            background-color: var(--bg-content);
-            margin: 0 20px 20px 0;
-            border-radius: 15px;
-            padding: 30px;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 25px;
-            overflow: hidden; /* Fondamentale per bloccare lo scrolling dell'intera pagina */
-            color: var(--text-dark);
-        }
-
-        /* --- COLONNA SENSORI (Aggiornata per lo Scroll) --- */
-        .panel { 
-            background: white; 
-            border-radius: 15px; 
-            padding: 25px; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-            border: 1px solid #cbd5e1;
-            height: 100%; /* Forza il pannello a non superare l'altezza della griglia */
-            box-sizing: border-box;
-            min-height: 0; /* Trucco CSS Grid per far funzionare lo scroll interno */
-        }
-        .panel-title { margin-top: 0; color: var(--bg-sidebar); font-size: 1.4em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        
-        .search-bar { background-color: #ffffff; border-radius: 25px; display: flex; align-items: center; padding: 5px 20px; margin-bottom: 20px; border: 1px solid #cbd5e1; flex-shrink: 0; }
-        .search-bar input { width: 100%; border: none; background: transparent; padding: 10px; outline: none; font-size: 1em; color: var(--text-dark); }
-        
-        .table-header { display: grid; grid-template-columns: 1.5fr 1fr 1fr; font-weight: bold; padding: 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; text-transform: uppercase; font-size: 0.85em; flex-shrink: 0; }
-        
-        /* QUI AVVIENE LA MAGIA DELLO SCROLL */
-        .scroll-list { 
-            overflow-y: auto; 
-            flex-grow: 1; 
-            margin-top: 10px; 
-            padding-right: 10px; 
-        }
-        
-        /* Scrollbar personalizzata per abbinarsi al design */
-        .scroll-list::-webkit-scrollbar { width: 8px; }
-        .scroll-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        .scroll-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .scroll-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .list-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; padding: 15px 10px; align-items: center; border-bottom: 1px solid #f1f5f9; }
-        .name-cell { font-weight: 600; color: var(--text-dark); }
-        
-        .status-badge { padding: 5px 12px; border-radius: 12px; font-size: 0.8em; font-weight: bold; text-align: center; color: white; width: fit-content; }
-        .status-ok { background-color: var(--ok-color); }
-        .status-warn { background-color: var(--warn-color); }
-
-        /* --- COLONNA ATTUATORI & PIANETI --- */
-        .right-column { display: flex; flex-direction: column; gap: 20px; min-height: 0; height: 100%; }
-        
-        .actuators-card { background-color: var(--bg-sidebar); border-radius: 20px; padding: 25px; color: white; flex-shrink: 0; }
-        .act-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .act-row:last-child { border-bottom: none; }
-
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--ok-color); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        .planet-box { flex-grow: 1; background: #cbd5e1; border-radius: 20px; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #b1bccd; min-height: 150px; }
-        .planet-img { width: 140px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" style="width: 32px; padding: 10px;">
-        </div>
-        <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" style="width: 32px; padding: 10px;">
-        </div>
-    </div>
-
-    <div class="main-wrapper">
-        <div class="navbar">
-            <div class="navbar-links">
-                <a href="{{ url_for('home') }}" class="navbar-link">Dashboard</a>
-                <a href="{{ url_for('manage_rules') }}" class="navbar-link">Rules</a>
-                <a href="{{ url_for('sensors_actuators') }}" class="navbar-link active">Sensors & Actuators</a>
-            </div>
-            <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" style="width: 24px;">
-                <span>Mars Base Operations</span>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <div class="panel">
-                <h2 class="panel-title">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" style="width: 24px; filter: brightness(0) saturate(100%) invert(26%) sepia(87%) border-right(216deg) saturate(1915%) hue-rotate(211deg) brightness(91%) contrast(101%);">
-                    Mission Sensors
-                </h2>
-                <div class="search-bar">
-                    <input type="text" id="sensorInput" onkeyup="searchSensors()" placeholder="Search active telemetry...">
-                </div>
-                <div class="table-header">
-                    <span>Source ID</span>
-                    <span>Type</span>
-                    <span>Status</span>
-                </div>
-                <div class="scroll-list" id="sensorList">
-                    {% for sensor in sensors %}
-                    <div class="list-row">
-                        <span class="name-cell">{{ sensor.name }}</span>
-                        <span style="color: #64748b; font-size: 0.9em;">{{ sensor.type }}</span>
-                        <div class="status-badge {{ 'status-ok' if sensor.status == 'OK' else 'status-warn' }}">
-                            {{ sensor.status }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    </div>
-            </div>
-
-            <div class="right-column">
-                <div class="actuators-card">
-                    <h2 style="margin-top: 0; font-size: 1.4em; margin-bottom: 20px;">Manual Control</h2>
-                    {% for actuator in actuators %}
-                    <div class="act-row">
-                        <span>{{ actuator.name }}</span>
-                        <label class="switch">
-                            <input type="checkbox" {% if actuator.state == 'ON' %}checked{% endif %} 
-                                   onchange="toggleActuator('{{ actuator.id }}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <div class="planet-box">
-                    <img src="{{ url_for('static', filename='icons/planet_96px.png') }}" class="planet-img">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function toggleActuator(actuatorId, isChecked) {
-            const newState = isChecked ? "ON" : "OFF";
-            fetch(`/actuators/${actuatorId}/toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state: newState })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status !== "success") {
-                    alert("Control override failed!");
-                    location.reload();
-                }
-            })
-            .catch(err => console.error("Network error:", err));
-        }
-
-        function searchSensors() {
-            let input = document.getElementById('sensorInput').value.toLowerCase();
-            let rows = document.getElementById('sensorList').getElementsByClassName('list-row');
-            for (let row of rows) {
-                let name = row.querySelector('.name-cell').textContent.toLowerCase();
-                row.style.display = name.includes(input) ? "" : "none";
-            }
-        }
-    </script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="it">
 
@@ -463,13 +11,12 @@
             --bg-color-body: #110D2C;
             --bg-sidebar: #2A56C6;
             --bg-content: #E2E8F0;
+            --card-header-bg: #3B65D9;
             --text-main: #ffffff;
             --text-dark: #1e293b;
             --accent: #2A56C6;
             --ok-color: #35D01A;
             --off-color: #f97316;
-            --warn-color: #ef4444;
-            --neutral-color: #3b82f6;
         }
 
         body {
@@ -483,7 +30,7 @@
             overflow: hidden;
         }
 
-        /* --- SIDEBAR (Uniformata a rules.html) --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 70px;
             background-color: var(--bg-sidebar);
@@ -495,7 +42,8 @@
             border-right: 1px solid #110D2C;
         }
 
-        /* --- MAIN WRAPPER & NAVBAR (Uniformata a rules.html) --- */
+
+        /* --- MAIN WRAPPER & NAVBAR --- */
         .main-wrapper {
             flex-grow: 1;
             display: flex;
@@ -507,9 +55,7 @@
         .navbar {
             height: 60px;
             min-height: 60px;
-            /* Forza l'altezza minima */
             flex-shrink: 0;
-            /* Impedisce al flexbox di schiacciarla */
             padding: 0 20px;
             display: flex;
             justify-content: space-between;
@@ -556,7 +102,7 @@
             font-weight: bold;
         }
 
-        /* --- CONTENUTO PRINCIPALE --- */
+        /* --- CONTENT AREA --- */
         .content-area {
             flex-grow: 1;
             background-color: var(--bg-content);
@@ -570,7 +116,7 @@
             color: var(--text-dark);
         }
 
-        /* --- COLONNA SENSORI --- */
+        /* --- SENSORS PANEL --- */
         .panel {
             background: white;
             border-radius: 15px;
@@ -634,23 +180,9 @@
             padding-right: 10px;
         }
 
-        .scroll-list::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .scroll-list::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-
-        .scroll-list::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        .scroll-list::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        .scroll-list::-webkit-scrollbar { width: 8px; }
+        .scroll-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .scroll-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .group-label {
             padding: 15px 10px 5px 10px;
@@ -669,24 +201,9 @@
             padding: 15px 10px;
             align-items: center;
             border-bottom: 1px solid #f1f5f9;
-            transition: background-color 0.3s;
         }
 
-        .list-row span {
-            white-space: normal;
-            /* Permette al testo di andare a capo */
-            word-wrap: break-word;
-            /* Spezza le parole troppo lunghe */
-            line-height: 1.4;
-            /* Migliora la leggibilità se su più righe */
-        }
-
-        .name-cell {
-            font-weight: 600;
-            color: var(--text-dark);
-            word-break: break-all;
-            padding-right: 10px;
-        }
+        .name-cell { font-weight: 600; color: var(--text-dark); word-break: break-all; padding-right: 10px; }
 
         .status-badge {
             padding: 4px 10px;
@@ -697,29 +214,14 @@
             color: white;
             width: fit-content;
             text-transform: uppercase;
-            transition: all 0.3s;
         }
 
-        .status-ok {
-            background-color: var(--ok-color);
-        }
+        .status-ok { background-color: var(--ok-color); }
+        .status-warn { background-color: var(--warn-color); }
+        .status-neutral { background-color: var(--neutral-color); }
 
-        .status-warn {
-            background-color: var(--warn-color);
-        }
-
-        .status-neutral {
-            background-color: var(--neutral-color);
-        }
-
-        /* --- COLONNA ATTUATORI & PIANETI --- */
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            min-height: 0;
-            height: 100%;
-        }
+        /* --- ACTUATORS COLUMN --- */
+        .right-column { display: flex; flex-direction: column; gap: 20px; height: 100%; }
 
         .actuators-card {
             background-color: var(--bg-sidebar);
@@ -737,92 +239,35 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .act-row:last-child {
-            border-bottom: none;
-        }
+        .act-row:last-child { border-bottom: none; }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: var(--ok-color);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(22px);
-        }
+        /* --- TOGGLE --- */
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked+.slider { background-color: var(--ok-color); }
+        input:checked+.slider:before { transform: translateX(22px); }
 
         .planet-box {
-            display: flex;
-            align-items: stretch;
-            /* Forza i figli a occupare tutta l'altezza */
-            justify-content: center;
-            align-self: stretch;
-            /* Forza se stesso a occupare l'altezza del padre */
-            background: var(--bg-content);
+            background: #cbd5e1;
             border-radius: 20px;
             overflow: hidden;
             flex-grow: 1;
-            /* Se è dentro un contenitore flex orizzontale, serve un'altezza */
-            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #b1bccd;
         }
 
-        .planet-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* Taglia l'eccesso ma riempie tutto */
-            display: block;
-            /* Rimuove spazi vuoti sotto l'immagine */
-        }
+        .planet-img { width: 140px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
     </style>
 </head>
 
 <body>
-
     <div class="sidebar">
-        <div class="sidebar-top">
-            <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission"
-                style="width: 32px; height: 32px; padding: 10px;">
-        </div>
-        <div class="sidebar-bottom">
-            <img src="{{ url_for('static', filename='icons/settings_64px.png') }}" alt="Settings"
-                style="width: 32px; height: 32px; padding: 10px;">
-        </div>
+        <div class="sidebar-top"><img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" style="width: 32px; padding: 10px;"></div>
+        <div class="sidebar-bottom"><img src="{{ url_for('static', filename='icons/settings_64px.png') }}" style="width: 32px; padding: 10px;"></div>
     </div>
 
     <div class="main-wrapper">
@@ -831,10 +276,10 @@
                 <a href="{{ url_for('home') }}" class="navbar-link">Dashboard</a>
                 <a href="{{ url_for('manage_rules') }}" class="navbar-link">Rules</a>
                 <a href="{{ url_for('sensors_actuators') }}" class="navbar-link active">Sensors & Actuators</a>
+                <a href="{{ url_for('history') }}" class="navbar-link">History</a>
             </div>
             <div class="navbar-title">
-                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" alt="Rocket"
-                    style="width: 24px; height: 24px;">
+                <img src="{{ url_for('static', filename='icons/rocket_48px.png') }}" style="width: 24px;">
                 <span>Mars Base Operations</span>
             </div>
         </div>
@@ -842,13 +287,11 @@
         <div class="content-area">
             <div class="panel">
                 <h2 class="panel-title">
-                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}"
-                        style="width: 24px; filter: brightness(0) saturate(100%) invert(26%) sepia(87%) border-right(216deg) saturate(1915%) hue-rotate(211deg) brightness(91%) contrast(101%);">
+                    <img src="{{ url_for('static', filename='icons/search_64px.png') }}" style="width: 24px; filter: brightness(0) saturate(100%) invert(26%) sepia(87%) border-right(216deg) saturate(1915%) hue-rotate(211deg) brightness(91%) contrast(101%);">
                     Mission Sensors
                 </h2>
                 <div class="search-bar">
-                    <input type="text" id="sensorInput" onkeyup="searchSensors()"
-                        placeholder="Search active telemetry...">
+                    <input type="text" id="sensorInput" onkeyup="searchSensors()" placeholder="Search active telemetry...">
                 </div>
                 <div class="table-header">
                     <span>Source ID</span>
@@ -858,57 +301,35 @@
                 </div>
 
                 <div class="scroll-list" id="sensorList">
-
                     <div class="group-label">REST Polling</div>
                     {% for sensor in sensors if sensor.source_type == 'rest' %}
                     <div class="list-row" data-source-id="{{ sensor.source_id }}">
                         <span class="name-cell">{{ sensor.source_id }}</span>
                         <span style="color: #64748b; font-size: 0.9em;">{{ sensor.source_type | upper }}</span>
-
                         {% set s_lower = sensor.status | lower %}
-                        {% if s_lower == 'ok' %}
-                        <div class="status-badge status-ok">{{ sensor.status }}</div>
-                        {% elif s_lower == 'warning' %}
-                        <div class="status-badge status-warn">{{ sensor.status }}</div>
-                        {% else %}
-                        <div class="status-badge status-neutral">{{ sensor.status }}</div>
-                        {% endif %}
-
+                        <div class="status-badge {{ 'status-ok' if s_lower == 'ok' else 'status-warn' if s_lower == 'warning' else 'status-neutral' }}">
+                            {{ sensor.status }}
+                        </div>
                         <span style="font-size: 0.85em; color: #475569; font-style: italic;">
                             {{ descriptions.get(sensor.source_id, 'Monitoraggio telemetrico standard.')}}
                         </span>
-
                     </div>
-                    {% else %}
-                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No REST sensors
-                            active.</span></div>
                     {% endfor %}
 
-                    <div class="group-label" style="margin-top: 20px;">Telemetry Streams</div>
+                    <div class="group-label">Telemetry Streams</div>
                     {% for sensor in sensors if sensor.source_type == 'telemetry' %}
                     <div class="list-row" data-source-id="{{ sensor.source_id }}">
                         <span class="name-cell">{{ sensor.source_id }}</span>
                         <span style="color: #64748b; font-size: 0.9em;">{{ sensor.source_type | upper }}</span>
-
                         {% set s_lower = sensor.status | lower %}
-                        {% if s_lower == 'ok' %}
-                        <div class="status-badge status-ok">{{ sensor.status }}</div>
-                        {% elif s_lower == 'warning' %}
-                        <div class="status-badge status-warn">{{ sensor.status }}</div>
-                        {% else %}
-                        <div class="status-badge status-neutral">{{ sensor.status }}</div>
-                        {% endif %}
-
+                        <div class="status-badge {{ 'status-ok' if s_lower == 'ok' else 'status-warn' if s_lower == 'warning' else 'status-neutral' }}">
+                            {{ sensor.status }}
+                        </div>
                         <span style="font-size: 0.85em; color: #475569; font-style: italic;">
                             {{ descriptions.get(sensor.source_id, 'Monitoraggio telemetrico standard.')}}
                         </span>
-
                     </div>
-                    {% else %}
-                    <div class="list-row"><span style="color: #94a3b8; font-style: italic;">No telemetry streams
-                            active.</span></div>
                     {% endfor %}
-
                 </div>
             </div>
 
@@ -919,23 +340,14 @@
                     <div class="act-row">
                         <span>{{ actuator.actuator_id if actuator.actuator_id else actuator.name }}</span>
                         <label class="switch">
-                            <input type="checkbox"
-                                id="toggle-{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}" {% if
-                                actuator.state=='ON' %}checked{% endif %}
-                                onchange="toggleActuator('{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}', this.checked)">
+                            <input type="checkbox" id="toggle-{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}" {% if actuator.state=='ON' %}checked{% endif %} onchange="toggleActuator('{{ actuator.actuator_id if actuator.actuator_id else actuator.id }}', this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
-                    {% else %}
-                    <div class="act-row"
-                        style="justify-content: center; color: rgba(255,255,255,0.5); font-style: italic;">
-                        No actuators connected.
-                    </div>
                     {% endfor %}
                 </div>
-
                 <div class="planet-box">
-                    <img src="{{ url_for('static', filename='icons/planet_96px.jpg') }}" class="planet-img">
+                    <img src="{{ url_for('static', filename='icons/planet_96px.png') }}" class="planet-img">
                 </div>
             </div>
         </div>
@@ -943,87 +355,41 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
-        // Funzione per inviare comandi agli attuatori
+        const socket = io();
+
         function toggleActuator(actuatorId, isChecked) {
             const newState = isChecked ? "ON" : "OFF";
             fetch(`/actuators/${actuatorId}/toggle`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ state: newState })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status !== "success") {
-                        alert("Control override failed!");
-                        location.reload();
-                    }
-                })
-                .catch(err => console.error("Network error:", err));
+            }).then(res => res.json()).then(data => {
+                if (data.status !== "success") { alert("Control override failed!"); location.reload(); }
+            }).catch(err => console.error(err));
         }
 
-        // Funzione per la barra di ricerca
         function searchSensors() {
             let input = document.getElementById('sensorInput').value.toLowerCase();
-            let rows = document.getElementById('sensorList').getElementsByClassName('list-row');
-            for (let row of rows) {
-                let rowText = row.textContent.toLowerCase();
-                row.style.display = rowText.includes(input) ? "" : "none";
-            }
+            let rows = document.querySelectorAll('.list-row');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(input) ? "" : "none";
+            });
         }
 
-        // --- GESTIONE WEBSOCKET REAL-TIME ---
-        const socket = io();
-
         socket.on('telemetry_update', function (data) {
-            const sourceId = data.source_id;
-            const newStatus = data.status.toLowerCase();
-
-            // Trova la riga corrispondente al sensore che ha mandato i dati
-            const row = document.querySelector(`.list-row[data-source-id="${sourceId}"]`);
-
+            const row = document.querySelector(`.list-row[data-source-id="${data.source_id}"]`);
             if (row) {
                 const badge = row.querySelector('.status-badge');
                 if (badge) {
-                    // Aggiorna testo
                     badge.textContent = data.status.toUpperCase();
-
-                    // Rimuove i vecchi colori
-                    badge.classList.remove('status-ok', 'status-warn', 'status-neutral');
-
-                    // Applica il nuovo colore
-                    if (newStatus === 'ok') {
-                        badge.classList.add('status-ok');
-                    } else if (newStatus === 'warning') {
-                        badge.classList.add('status-warn');
-                    } else {
-                        badge.classList.add('status-neutral');
-                    }
-
-                    // Effetto flash per confermare l'aggiornamento visivamente
-                    badge.style.opacity = '0.3';
-                    setTimeout(() => badge.style.opacity = '1', 200);
+                    badge.className = 'status-badge ' + (data.status.toLowerCase() === 'ok' ? 'status-ok' : data.status.toLowerCase() === 'warning' ? 'status-warn' : 'status-neutral');
                 }
             }
         });
 
-        // Ascolta i cambiamenti degli attuatori in tempo reale
         socket.on('actuator_update', function (data) {
-            const actuatorId = data.actuator_id;
-            const newState = data.state; // "ON" o "OFF"
-
-            // Trova l'interruttore corretto
-            const toggleElement = document.getElementById(`toggle-${actuatorId}`);
-
-            if (toggleElement) {
-                // Controlliamo se va aggiornato per evitare loop infiniti
-                const isCurrentlyChecked = toggleElement.checked;
-                const shouldBeChecked = (newState === "ON");
-
-                if (isCurrentlyChecked !== shouldBeChecked) {
-                    toggleElement.checked = shouldBeChecked;
-                    console.log(`[WebSocket] L'attuatore ${actuatorId} è scattato su ${newState} in automatico!`);
-                }
-            }
+            const toggle = document.getElementById(`toggle-${data.actuator_id}`);
+            if (toggle) toggle.checked = (data.state === "ON");
         });
     </script>
 </body>
