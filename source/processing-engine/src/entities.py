@@ -41,13 +41,14 @@ class Rule():
         else:
             raise ValueError(f"Operator '{self.operator}' is not a valid operator for a rule")
 
+# Attenzione:  triggered_rules_history non usato
 class State():
-    def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None):
+    def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None, on_rule_triggered=None):
         self.sensor_data = sensor_data or {}
         self.current_rules = current_rules or defaultdict(list)
         self.current_actuators_status = current_actuators_status or {}
         self.on_actuator_change = on_actuator_change
-
+        self.on_rule_triggered = on_rule_triggered
 
     def load_persistent_rules(self):
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
@@ -145,14 +146,32 @@ class State():
         for rule in rules_to_check:
             if not rule.enabled:
                 continue
+
             for metric in data.get("metrics", []):
-                if self.current_actuators_status.get(rule.actuator_name) != rule.actuator_set_value:
+                if metric.get("name") != rule.metric:
+                    continue
+
+                value = metric.get("value")
+                if value is None:
+                    continue
+
+                if rule.is_not_respected(value):
                     rule.triggered_at = time.time()
-                    print(f"[Broken rule] Source: {rule.sensor_name}, metric: {rule.metric}, value: {metric['value']} (should not be {rule.operator}{rule.sensor_target_value}), setting {rule.actuator_name} to {rule.actuator_set_value}")
-                    self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
-                    
-                    if self.on_actuator_change:
-                        self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
-                else:
-                    rule.triggered_at = time.time()
-                    print("[Broken rule] Actuator was already to set value")
+
+                    if self.current_actuators_status.get(rule.actuator_name) != rule.actuator_set_value:
+                        print(
+                            f"[RULE TRIGGERED] Source: {rule.sensor_name}, "
+                            f"metric: {rule.metric}, value: {value}, "
+                            f"condition: {rule.operator}{rule.sensor_target_value}, "
+                            f"setting {rule.actuator_name} to {rule.actuator_set_value}"
+                        )
+
+                        if self.on_rule_triggered:
+                            self.on_rule_triggered(rule, value)
+
+                        self.current_actuators_status[rule.actuator_name] = rule.actuator_set_value
+
+                        if self.on_actuator_change:
+                            self.on_actuator_change(rule.actuator_name, rule.actuator_set_value)
+                    else:
+                        print("[RULE TRIGGERED] Actuator already in desired state")
