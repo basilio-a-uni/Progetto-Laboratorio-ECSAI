@@ -30,7 +30,7 @@ def get_connection():
 def inject_callback(state):
     def callback(ch, method, properties, body):
         data = json.loads(body)
-        print(f"Ricevuto dati : {data}\n")
+        # print(f"Ricevuto dati : {data}\n")
 
         state.update(data)
         

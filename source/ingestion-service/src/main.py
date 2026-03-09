@@ -154,8 +154,8 @@ async def consume_topic(topic):
                     # send the data
                     messaging.send_message(data)
 
-                    print("Stream telemetry:")
-                    print(f"[{topic}] Dati: {data}")
+                    # print("Stream telemetry:")
+                    # print(f"[{topic}] Dati: {data}")
         except Exception as e:
             print(f"[!] Errore su {topic}: {e}. Riprovo tra 5s...")
             await asyncio.sleep(5)
@@ -174,8 +174,8 @@ async def poll_rest(sensor):
                     # send the data
                     messaging.send_message(data)
 
-                    print("Rest sensor:")
-                    print(f"[{sensor}] Dati: {data}")
+                    # print("Rest sensor:")
+                    # print(f"[{sensor}] Dati: {data}")
 
             except Exception as e:
                 print(f"[!] REST error on {sensor}: {e}")
