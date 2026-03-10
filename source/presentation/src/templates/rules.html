@@ -103,10 +103,7 @@
         .content-area {
             flex-grow: 1;
             background-color: var(--bg-content);
-            /* margin: 0 20px 20px 0; <--- Modifica questa riga così: */
             margin: 0 20px 20px 0;
-
-            /* Aumenta il margine destro per staccare la scrollbar dal bordo finestra */
             margin-right: 30px;
             margin-left: 30px;
 
@@ -118,23 +115,17 @@
 
         .content-area::-webkit-scrollbar {
             width: 20px;
-            /* Leggermente più larga per gestire il padding interno */
         }
 
-        /* 2. Il binario (track) */
         .content-area::-webkit-scrollbar-track {
             background: transparent;
-            /* Sfondo trasparente per far vedere il colore della pagina */
             margin: 10px 0;
-            /* Distanza dal bordo superiore e inferiore del pannello */
         }
 
-        /* 3. La "maniglia" (thumb) */
         .content-area::-webkit-scrollbar-thumb {
             background-color: #86898c;
             border-radius: 10px;
 
-            /* TRUCCO: Crea uno spazio vuoto attorno alla scrollbar stessa */
             border: 6px solid transparent;
             background-clip: content-box;
         }

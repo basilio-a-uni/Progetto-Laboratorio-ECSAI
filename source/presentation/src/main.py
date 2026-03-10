@@ -2,12 +2,12 @@ import os
 import json
 import time
 import pika
-from flask import Flask, render_template, request, jsonify # <-- Aggiunto jsonify
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
 import requests
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'mars-secret-key'  # for flask websocket
+app.config['SECRET_KEY'] = 'mars-secret-key'
 
 # Inizializziamo SocketIO in modalità threading nativa
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -29,7 +29,6 @@ def rabbitmq_consumer():
     connection = get_rabbit_connection()
     channel = connection.channel()
 
-    # Ci assicuriamo che l'exchange esista
     channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='fanout')
 
     # Creiamo una coda esclusiva e temporanea solo per questo frontend
@@ -39,12 +38,11 @@ def rabbitmq_consumer():
     # Leghiamo la nostra coda privata al megafono (Exchange)
     channel.queue_bind(exchange=EXCHANGE_NAME, queue=queue_name)
 
-    # Aggiunto il callback per quando regola triggerata
+    # Aggiunto il callback per quando la regola è triggerata
     def callback(ch, method, properties, body):
         try:
             data = json.loads(body.decode('utf-8'))
             
-            # NUOVO: Smistiamo il messaggio in base al tipo
             if data.get("type") == "actuator_update":
                 socketio.emit('actuator_update', data)
             elif data.get("type") == "rule_triggered":
@@ -62,24 +60,19 @@ def rabbitmq_consumer():
 
 @app.route("/")
 def home():
-    # Renderizza la nostra dashboard
     return render_template("index.html")
 
-# ==========================================
 # ROTTE PROXY VERSO IL PROCESSING ENGINE
-# ==========================================
 ENGINE_URL = "http://processing-engine:8001"
 
 @app.route("/rules", methods=["GET", "POST"])
 def manage_rules():
     if request.method == "POST":
-        # Ora il browser invia un JSON tramite Javascript, non più un Form HTML!
         rule_data = request.json
         
         # Inoltriamo il JSON al Processing Engine
         try:
             response = requests.post(f"{ENGINE_URL}/rules", json=rule_data, timeout=5)
-            # Rispondiamo al Javascript dicendo che è andato tutto bene
             return jsonify({"status": "success"}), 200
         except Exception as e:
             print(f"Errore di invio regola: {e}")
@@ -141,7 +134,6 @@ def get_history_api():
         return jsonify(response.json()), 200
     except:
         return jsonify([]), 500
-# ==========================================
 
 @app.route("/sensors-actuators")
 def sensors_actuators():
@@ -161,7 +153,7 @@ def sensors_actuators():
         "hydroponic_ph": "Acidity level of the nutrient solution in the hydroponic system.",
         "greenhouse_temperature": "Ambient temperature inside the botanical greenhouse.",
         
-        # Advanced Telemetry Streams (MQTT/Telemetry)
+        # Advanced Telemetry Streams
         "mars/telemetry/life_support": "Operational status of the primary life support system.",
         "mars/telemetry/thermal_loop": "Monitoring of the thermal transfer fluid for base heating.",
         "mars/telemetry/solar_array": "Efficiency and energy output of the photovoltaic panels.",
