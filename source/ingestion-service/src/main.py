@@ -134,11 +134,6 @@ def unify_sensor(sensor_id: str, data: dict) -> dict:
     return new_data
 
 
-
-
-
-
-
 async def consume_topic(topic):
     uri = f"ws://simulator:8080/api/telemetry/ws?topic={topic}"
     while True:
@@ -190,13 +185,4 @@ async def main():
         )
 
 if __name__ == "__main__":
-    data_example = {
-        "source_id": "test",
-        "timestamp": "2026-03-06T11:45:00",
-        "rest_sensors": {"greenhouse_temp": 22.5, "co2_hall": 450},
-        "telemetry": {"topic_alpha": 10.2}
-    }
-
-    messaging.send_message(data_example)
-
     asyncio.run(main())

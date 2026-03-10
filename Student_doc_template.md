@@ -7,7 +7,7 @@ Mars Base Operations is a centralized monitoring and control platform for Martia
 1. As the Administrator I want to see current rules
 2. As the Administrator I want to see the list of available actuators
 3. As the Administrator I want to see the list of available sensors
-4. As the Administrator I want to visualize the trends of the latest sensors values (piccolo fix todo: fare in modo che per le metriche con più di un valore il grafico mostra tutti i valori)
+4. As the Administrator I want to visualize the trends of the latest sensors values
 5. As the Administrator I want to know the status of the operative system
 6. As the Administrator I want to add a rule
 7. As the Administrator I want to remove a rule
@@ -31,50 +31,118 @@ Mars Base Operations is a centralized monitoring and control platform for Martia
 ## CONTAINER_NAME: Ingestion Service
 
 ### DESCRIPTION: 
-Manages all functionalities on the ingestion of data of different standards
+The ingestion service receives data from the REST sensors and the telemetry stream, to unify and centralize them.
 
 ### USER STORIES:
-<list of user stories satisfied>
+1. As the Administrator I want to see the list of available sensors
+2. As the Administrator I want to be notified of the warning status of a sensor
+3. As the Administrator I want to filter sensors by name, type or status
 
-### PORTS: 
-<used ports>
+### PORTS:
+No ports open
 
-### DESCRIPTION:
-<description of the container>
-
-### PERSISTENCE EVALUATION
-<description on the persistence of data>
+### PERSISTANCE EVALUATION
+The Ingestion Service container does not require data persistence as it works as a statless data pipeline that tranforms and forward data.
 
 ### EXTERNAL SERVICES CONNECTIONS
-<description on the connections to external services>
+The Ingestion Service container connects to:
+- The simulator container at simulator:8080 trough REST API and Websocket API
+- The RabbitMQ container to broadcast data
 
 ### MICROSERVICES:
 
-#### MICROSERVICE: <name of the microservice>
+#### MICROSERVICE: Ingestion Service
 - TYPE: backend
-- DESCRIPTION: <description of the microservice>
-- PORTS: <ports to be published by the microservice>
+- DESCRIPTION: The ingestion service receives data from the REST sensors and the telemetry stream, to unify and centralize them.
+- PORTS: No open ports
 - TECHNOLOGICAL SPECIFICATION:
-<description of the technological aspect of the microservice>
-- SERVICE ARCHITECTURE: 
-<description of the architecture of the microservice>
+The microservices utilizes the Python programming language, specifically targeting python 3.12.
+The service is build using the following key packages:
+	asyncio -> to be able to poll all sensor at the same time on the same thread instead of using the more heavy approach of multithreading
+	websockets -> to be able to retrieve data via Websocket API
+	aihttp -> to be able to retrieve data via REST API asynchronously
+	pika -> to be able to connect to the RabbitMQ container
+- SERVICE ARCHITECTURE:
+The service is realized with:
+	- a function to easily broadcast data
+	- a function that unify the data in a unique event data JSON schema
+	- a coroutine that polls the REST API of a sensor every 5 seconds
+	- a coroutine that receive all the data of a topic via Websocket API
 
-- ENDPOINTS: <put this bullet point only in the case of backend and fill the following table>
-		
-	| HTTP METHOD | URL | Description | User Stories |
-	| ----------- | --- | ----------- | ------------ |
-    | ... | ... | ... | ... |
+- EVENT SCHEMA:
+```json
+{
+	"source_id": "sensor/telemetry name",
+	"source_type": "telemetry"/"rest",
+	"timestamp": timestamp,
+	"status": "ok"/"warning",
+	"metrics": [
+		{
+			"name": "metric name",
+			"value": "value for that metric",
+			"unit": "unit of measurement for that metric"
+		}
+	]
+}
+```
 
-- PAGES: <put this bullet point only in the case of frontend and fill the following table>
+## CONTAINER_NAME: Processing Engine
+### DESCRIPTION:
 
-	| Name | Description | Related Microservice | User Stories |
-	| ---- | ----------- | -------------------- | ------------ |
-	| ... | ... | ... | ... |
+### USER STORIES:
+1. As the Administrator I want to see current rules
+2. As the Administrator I want to see the list of available actuators    
+3. As the Administrator I want to add a rule
+4. As the Administrator I want to remove a rule
+5. As the Administrator I want to temporarily enable or disable a rule
+6. As the Administrator I want my changes to be persistent
+7. As the Administrator I want to switch an actuator on or off manually
+8. As the Administrator I want to see the history of triggered rules
+9. As the Administrator I want to see the current status of all actuators
+10. As the Administrator I want to be notified of the trigger of a rule
 
-- DB STRUCTURE: <put this bullet point only in the case a DB is used in the microservice and specify the structure of the tables and columns>
+## CONTAINER_NAME: Presentation
+### DESCRIPTION:
+The Presentation container acts as a frontend API gateway for the browser to visualize the received data.
 
-	**_<name of the table>_** :	| **_id_** | <other columns>
+### USER STORIES:
+1. As the Administrator I want to visualize the trends of the latest sensors values
+2. As the Administrator I want to know the status of the operative system
+3. As the Administrator I want to filter rules by name, sensor or actuator of the rule
+4. As the Administrator I want to monitor the status of the habitat through the dashboard
+5. As the Administrator I want to see detailed information about a sensor
+6. As the Administrator I want to navigate between interfaces intuitively
 
-#### <other microservices>
+### PORTS
+8000:8000
 
-## <other containers>
+### PERSISTANCE EVALUATION
+The Presentation service does not requires persistent storage since it's juste a simple flask application that sends the html files to the browser
+
+### EXTERNAL SERVICES CONNECTIONS
+The Presentation container connects to:
+- The RabbitMQ container to receive data from the ingestion service
+- The Processing Engine container via rest polling to get information about rules and actuators
+
+### MICROSERVICES
+#### MICROSERVICE: Presentation
+- TYPE: frontend
+- DESCRIPTION: The Presentation container acts as a frontend API gateway for the browser to visualize the received data.
+- PORTS: 8000
+- TECHNOLOGICAL SPECIFICATION:
+The microservices utilizes the Python programming language, specifically targeting python 3.12.
+The service is build using the following key packages:
+	pika -> to be able to connect to the RabbitMQ container and receive data directly from the ingestion engine
+	requests and flask -> to be able to establish routes and comunicate with the Processing Engine container
+- SERVICE ARCHITECTURE:
+The service is realized with:
+	- a thread that receives data from the ingestion service via the RabbitMQ container
+	- a thread that serves the html templates to the browser
+- PAGES:
+
+| Name                  | Description                     | Related Microservice | User Stories |
+| --------------------- | ------------------------------- | -------------------- | ------------ |
+| index.html            | Main dashboard                  | RabbitMQ             | TODO         |
+| rules.html            | Rules management                | Processing Engine    |              |
+| sensor_actuators.html | Sensor and actuators management | Processing Engine    |              |
+| history.html          | Rules history                   | Processing Engine    |              |
