@@ -140,7 +140,8 @@ def handle_rules():
 def delete_rule(rule_id):
     try:
         state.delete_rule(rule_id)
-        del state.triggered_rules_history[rule_id]
+        if rule_id in state.triggered_rules_history:
+            del state.triggered_rules_history[rule_id]
         return jsonify({"status": "success", "message": f"Rule {rule_id} deleted"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -151,7 +152,8 @@ def update_rule():
     data = request.json
     try:
         state.update_rule(data)
-        del state.triggered_rules_history[int(data["id"])]
+        if int(data["id"]) in state.triggered_rules_history:
+            del state.triggered_rules_history[int(data["id"])]
         return jsonify({"status": "success", "message": f"Rule {data['id']} updated"}), 200
     except Exception as e:
         print("Update error:", str(e))
