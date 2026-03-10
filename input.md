@@ -1,6 +1,7 @@
 # SYSTEM DESCRIPTION:
 
-<description of the system>
+Mars Base Operations is centralized command center for Martian habitat management. By unifying environmental monitoring, actuator control, and automated logic, the platform transforms raw telemetry into actionable insights. Administrators can define complex operational rules and rely on an advanced notification system to ensure total situational awareness and a rapid response to environmental hazards.
+
 
 # USER STORIES:
 
