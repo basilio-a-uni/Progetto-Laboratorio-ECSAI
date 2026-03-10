@@ -38,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* --- SIDEBAR --- */
         .sidebar {
             width: 70px;
             background-color: var(--bg-sidebar);
@@ -108,7 +107,6 @@
             font-weight: bold;
         }
 
-        /* --- DASHBOARD LAYOUT NUOVO --- */
         .dashboard-content {
             flex-grow: 1;
             padding: 20px;
@@ -169,7 +167,6 @@
             transition: color 0.3s ease;
         }
 
-        /* La sottolineatura verde brillante */
         .navbar-link.active::after {
             content: "";
             position: absolute;
@@ -199,7 +196,6 @@
             font-family: monospace;
         }
 
-        /* Pannelli generici - Layout a griglia */
         .grid-2x2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -275,7 +271,6 @@
         }
 
 
-        /* Specifici Pannelli */
         .env-metric-container {
             display: flex;
             justify-content: space-between;
@@ -403,7 +398,6 @@
             font-family: monospace;
         }
 
-        /* Animazione */
         .update-flash {
             animation: flash 0.3s ease;
         }
@@ -653,7 +647,6 @@
             'mars/telemetry/airlock': { valId: 'airlock-value', timeId: 'airlock-time' }
         };
 
-        // 1. CHIAMATA REST PER L'HEALTH STATUS
         async function fetchHealthStatus() {
             try {
                 const response = await fetch('http://localhost:8080/health', {
@@ -729,9 +722,9 @@
                         },
                         y1: {
                             type: 'linear',
-                            display: false, // Nascosto di default
+                            display: false, 
                             position: 'right',
-                            grid: { drawOnChartArea: false }, // Evita confusione con le linee della griglia
+                            grid: { drawOnChartArea: false }, 
                             ticks: { color: '##2d2d2d' },
                             title: { display: true, text: 'Scala Secondaria (tratteggiata)', color: '##2d2d2d' }
                         },
@@ -750,14 +743,12 @@
 
         function createChartButton(sourceId) {
             const container = document.getElementById('chart-buttons-list');
-            // Se il container non esiste o il bottone c'è già, esci
             if (!container || document.querySelector(`.chart-btn[data-source="${sourceId}"]`)) return;
 
             const btn = document.createElement('button');
             btn.className = 'chart-btn' + (sourceId === activeChartSource ? ' active' : '');
             btn.dataset.source = sourceId;
 
-            // Formattazione etichetta: prende l'ultima parte dell'ID e pulisce underscore
             const label = sourceId.split('/').pop().replace(/_/g, ' ').toUpperCase();
             btn.innerText = label;
 
@@ -777,7 +768,6 @@
             const metricsSeries = chartDataStore[activeChartSource];
             const colorPalette = ['#2ecc71', '#3498db', '#fb9324', '#e74c3c', '#9b59b6', '#00cfd5'];
 
-            // 1. Troviamo il valore massimo assoluto tra TUTTE le serie
             let globalMax = 0;
             metricsSeries.forEach(series => {
                 const m = Math.max(...series.values, 0);
@@ -787,16 +777,12 @@
 
             let useSecondaryAxis = false;
 
-            // 2. Definiamo la soglia (es. 15%). 
-            // Se una metrica è < 15% del massimo globale, va sulla scala di destra.
             const disparityThreshold = 0.15;
 
             telemetryChart.data.datasets = metricsSeries.map((series, i) => {
                 const color = colorPalette[i % colorPalette.length];
                 const currentMax = Math.max(...series.values, 0);
 
-                // NOVITÀ: Anche la prima metrica (i=0) ora può essere un "outlier"
-                // se è molto più piccola del massimo globale trovato nelle altre serie.
                 const isOutlier = currentMax < (globalMax * disparityThreshold);
 
                 if (isOutlier) useSecondaryAxis = true;
@@ -806,9 +792,7 @@
                     data: series.values,
                     borderColor: color,
                     backgroundColor: color + '10',
-                    // Assegnazione asse
                     yAxisID: isOutlier ? 'y1' : 'y',
-                    // Stile visivo per distinguere gli assi
                     borderDash: isOutlier ? [5, 5] : [],
                     borderWidth: isOutlier ? 2 : 3,
                     pointStyle: isOutlier ? 'rectRot' : 'circle',
@@ -818,12 +802,9 @@
                 };
             });
 
-            // 3. Gestione visibilità asse secondario
             telemetryChart.options.scales.y1.display = useSecondaryAxis;
 
-            // 4. Se tutte le metriche sono finite su Y1 (per assurdo), 
-            // Chart.js potrebbe mostrare un grafico vuoto a sinistra. 
-            // Forziamo la visualizzazione coerente:
+
             telemetryChart.update();
         }
 
@@ -833,7 +814,6 @@
             const sourceId = data.source_id;
             const config = sourceMap[sourceId];
 
-            // --- PARTE 1 & 2: AGGIORNAMENTO UI (Card) ---
             if (config && data.metrics && data.metrics.length > 0) {
                 const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
                 let stringaDisplay = '';
@@ -859,9 +839,7 @@
                 if (timeEl) timeEl.innerText = timeString;
             }
 
-            // --- PARTE 3: AGGIORNAMENTO STORE PER IL GRAFICO (Multi-Metrica) ---
             if (data.metrics && data.metrics.length > 0) {
-                // Se lo store per questa sorgente non esiste, creiamolo come array di serie
                 if (!chartDataStore[sourceId]) {
                     chartDataStore[sourceId] = data.metrics.map(m => ({
                         label: m.name || sourceId,
@@ -870,12 +848,10 @@
                     createChartButton(sourceId);
                 }
 
-                // Aggiungiamo ogni valore alla rispettiva serie nello store
                 data.metrics.forEach((m, index) => {
                     if (typeof m.value === 'number' && chartDataStore[sourceId][index]) {
                         chartDataStore[sourceId][index].values.push(m.value);
 
-                        // Manteniamo il buffer di 10 valori
                         if (chartDataStore[sourceId][index].values.length > 10) {
                             chartDataStore[sourceId][index].values.shift();
                         }
@@ -884,14 +860,12 @@
 
                 saveChartData();
 
-                // Selezione automatica se è la prima metrica ricevuta
                 if (!activeChartSource) {
                     activeChartSource = sourceId;
                     const btn = document.querySelector(`.chart-btn[data-source="${sourceId}"]`);
                     if (btn) btn.classList.add('active');
                 }
 
-                // Se è la sorgente attiva, rinfresca il grafico
                 if (activeChartSource === sourceId) updateChartVisuals();
             }
         }
