@@ -87,7 +87,7 @@ The service is realized with:
 
 ## CONTAINER_NAME: Processing Engine
 ### DESCRIPTION:
-The processing engine receives data from the ingestion engine and process it to see if any sensor break any rules and applies the changes from the actuators.
+The processing engine receives data from the ingestion engine and process it to see if any sensor break any rules and applies the changes to the actuators.
 
 ### USER STORIES:
 1 As the Administrator I want to see current rules
@@ -115,7 +115,7 @@ The Processing Engine container connects to:
 ### MICROSERVICES:
 #### MICROSERVICE: Processing Engine
 - TYPE: backend
-- DESCRIPTION: The processing engine receives data from the ingestion engine and process it to see if any sensor break any rules and applies the changes from the actuators.
+- DESCRIPTION: The processing engine receives data from the ingestion engine and process it to see if any sensor break any rules and applies the changes to the actuators.
 - PORTS: 8001
 - TECHNOLOGICAL SPECIFICATION:
 The microservices utilizes the Python programming language, specifically targeting python 3.12.
