@@ -511,6 +511,49 @@
                 transform: translateX(0) scale(1);
             }
         }
+
+        .chart-layout {
+            display: flex;
+            gap: 20px;
+            height: 300px;
+        }
+
+        .chart-display {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .chart-controls {
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .chart-btn {
+            background: #1e1b4b;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .chart-btn:hover {
+            background: var(--accent);
+        }
+
+        .chart-btn.active {
+            background: var(--ok-color);
+            border-color: white;
+        }
     </style>
 </head>
 
@@ -569,12 +612,12 @@
                         <div class="grid-2x2">
                             <div class="metric-card">
                                 <div class="metric-card-value" id="temp-value">--</div>
-                                <div class="metric-card-label">Greenhouse Temp</div>
+                                <div class="metric-card-label">Greenhouse Temperature</div>
                                 <div class="timestamp" id="temp-time">--</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-card-value" id="hum-value">--</div>
-                                <div class="metric-card-label">Entrance Hum</div>
+                                <div class="metric-card-label">Entrance Humidity</div>
                                 <div class="timestamp" id="hum-time">--</div>
                             </div>
                             <div class="metric-card">
@@ -584,7 +627,7 @@
                             </div>
                             <div class="metric-card">
                                 <div class="metric-card-value" id="press-value">--</div>
-                                <div class="metric-card-label">Corridor Press</div>
+                                <div class="metric-card-label">Corridor Pressure</div>
                                 <div class="timestamp" id="press-time">--</div>
                             </div>
                         </div>
@@ -660,6 +703,17 @@
                     </div>
                 </div>
             </div>
+            <div class="panel telemetry-chart-panel" id="panel-charts" style="margin-top: 20px;">
+                <div class="panel-title">Telemetry Trends</div>
+                <div class="chart-layout">
+                    <div class="chart-display">
+                        <canvas id="mainTelemetryChart"></canvas>
+                    </div>
+                    <div class="chart-controls" id="chart-buttons-list">
+                    </div>
+                </div>
+            </div>
+
 
         </div>
     </div>
@@ -785,89 +839,6 @@
             'mars/telemetry/airlock': { valId: 'airlock-value', timeId: 'airlock-time', metricTarget: 'cycles_per_hour' }
         };
 
-        // 4. LOGICA ELABORAZIONE DATI
-        function processTelemetryData(data) {
-            const sourceId = data.source_id;
-            const config = sourceMap[sourceId];
-
-            const currentStatus = (data.status || '').toLowerCase();
-            const previousStatus = sensorLastStatus.get(sourceId);
-
-            if (currentStatus === 'warning' && previousStatus !== 'warning') {
-                showNotification({
-                    type: 'warning',
-                    title: '⚠ Sensor warning',
-                    message: `${sourceId} entered WARNING state.`,
-                    sourceId: sourceId,
-                    timestamp: data.timestamp,
-                    dedupeKey: `warning:${sourceId}`,
-                    cooldownMs: 10000,
-                    durationMs: 6000
-                });
-            }
-
-            sensorLastStatus.set(sourceId, currentStatus);
-
-            if (config && data.metrics && data.metrics.length > 0) {
-                const timeString = data.timestamp
-                    ? new Date(data.timestamp).toLocaleTimeString()
-                    : new Date().toLocaleTimeString();
-
-                // --- INIZIO NUOVA LOGICA DI RENDER ---
-                let stringaDisplay = '';
-
-                if (data.metrics.length === 1) {
-                    // Se c'è una sola metrica, comportati normalmente
-                    const m = data.metrics[0];
-                    const valore = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
-                    stringaDisplay = m.unit ? `${valore} ${m.unit}` : valore;
-                } else {
-                    // Se ci sono più metriche, abilita il menu a tendina
-                    const safeId = sourceId.replace(/[^a-zA-Z0-9]/g, '-'); // Rende l'ID sicuro per l'HTML
-
-                    // Prendi la prima metrica (Principale)
-                    const first = data.metrics[0];
-                    const firstVal = typeof first.value === 'number' ? first.value.toFixed(2) : first.value;
-                    const firstStr = first.unit ? `${firstVal} ${first.unit}` : firstVal;
-
-                    // Prepara l'HTML per le metriche extra (nascoste)
-                    let extraHtml = '';
-                    for (let i = 1; i < data.metrics.length; i++) {
-                        const m = data.metrics[i];
-                        const val = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
-                        const valStr = m.unit ? `${val} ${m.unit}` : val;
-
-                        extraHtml += `
-                            <div class="extra-metric-row">
-                            <span class="extra-metric-name">${m.name}</span>
-                            <span class="extra-metric-value">${valStr}</span>
-                        </div>`;
-                    }
-
-
-                    stringaDisplay = `
-                       <div class="metric-container-static">
-                            <div class="main-metric-group" style="margin-bottom: 10px;">
-                                <span class="main-metric-name" style="font-size: 0.7em; opacity: 0.8; display: block;">
-                                    ${first.name}
-                                </span>
-                                <div class="main-metric-value" style="font-size: 1em; font-weight: bold;">
-                                    ${firstStr}
-                                </div>
-                            </div>
-                            ${extraHtml ? `<div class="extra-metrics-list">${extraHtml}</div>` : ''}
-                        </div>
-                    `;
-                }
-                // --- FINE NUOVA LOGICA DI RENDER ---
-
-                updateDOMElement(config.valId, stringaDisplay);
-
-                const timeEl = document.getElementById(config.timeId);
-                if (timeEl) timeEl.innerText = timeString;
-            }
-        }
-
         // 5. CACHE INIZIALE
         document.addEventListener("DOMContentLoaded", function () {
             fetch('/api/latest-telemetry')
@@ -924,6 +895,173 @@
         });
 
         socket.on('disconnect', () => console.log('Disconnesso dal Server Flask.'));
+
+        // #LOGICA GRAFICI
+
+        const chartDataStore = {};
+        let activeChartSource = null;
+        let telemetryChart = null;
+
+        // 1. Inizializzazione del Grafico 
+        function initChart() {
+            const ctx = document.getElementById('mainTelemetryChart').getContext('2d');
+            telemetryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    datasets: [{
+                        label: 'Seleziona una metrica',
+                        data: [],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#27ae60'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: '#2d2d2d',
+                                drawBorder: false
+                            },
+                            ticks: { color: '#555555' }
+                        },
+                        x: { display: false }
+                    },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#2d2d2d' } }
+                    }
+                }
+            });
+        }
+
+        // 2. Funzione per creare i bottoni dei sensori sulla destra
+        function createChartButton(sourceId) {
+            const container = document.getElementById('chart-buttons-list');
+            // Evita di creare doppioni
+            if (document.querySelector(`.chart-btn[data-source="${sourceId}"]`)) return;
+
+            const btn = document.createElement('button');
+            btn.className = 'chart-btn';
+            btn.dataset.source = sourceId;
+            // Puliamo il nome (toglie i percorsi mars/telemetry/ e mette in maiuscolo)
+            const displayName = sourceId.split('/').pop().replace(/_/g, ' ').toUpperCase();
+            btn.innerText = displayName;
+
+            btn.onclick = () => {
+                activeChartSource = sourceId;
+                document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateChartVisuals();
+            };
+
+            container.appendChild(btn);
+        }
+
+        // 3. Aggiornamento visivo del grafico
+        function updateChartVisuals() {
+            if (!activeChartSource || !chartDataStore[activeChartSource]) return;
+
+            const dataPoints = chartDataStore[activeChartSource].values;
+            telemetryChart.data.datasets[0].data = dataPoints;
+            telemetryChart.data.datasets[0].label = activeChartSource.split('/').pop().toUpperCase();
+            telemetryChart.update('none');
+        }
+
+        /**
+         * 4. FUNZIONE PRINCIPALE (SOSTITUISCE QUELLA VECCHIA)
+         * Questa funzione ora fa DUE cose:
+         * - Aggiorna i numeri nelle card (PH, Temp, ecc.)
+         * - Aggiorna i dati per il grafico
+         */
+        function processTelemetryData(data) {
+            const sourceId = data.source_id;
+            const config = sourceMap[sourceId];
+
+            // --- PARTE 1: GESTIONE NOTIFICHE E STATUS ---
+            const currentStatus = (data.status || '').toLowerCase();
+            const previousStatus = sensorLastStatus.get(sourceId);
+            if (currentStatus === 'warning' && previousStatus !== 'warning') {
+                showNotification({
+                    type: 'warning',
+                    title: '⚠ Sensor warning',
+                    message: `${sourceId} entered WARNING state.`,
+                    sourceId: sourceId,
+                    timestamp: data.timestamp
+                });
+            }
+            sensorLastStatus.set(sourceId, currentStatus);
+
+            // --- PARTE 2: AGGIORNAMENTO TESTO NELLE CARD (LOGICA ESISTENTE) ---
+            if (config && data.metrics && data.metrics.length > 0) {
+                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+                let stringaDisplay = '';
+
+                if (data.metrics.length === 1) {
+                    const m = data.metrics[0];
+                    const valore = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
+                    stringaDisplay = m.unit ? `${valore} ${m.unit}` : valore;
+                } else {
+                    const first = data.metrics[0];
+                    const firstVal = typeof first.value === 'number' ? first.value.toFixed(2) : first.value;
+                    const firstStr = first.unit ? `${firstVal} ${first.unit}` : firstVal;
+
+                    let extraHtml = '';
+                    for (let i = 1; i < data.metrics.length; i++) {
+                        const m = data.metrics[i];
+                        const val = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
+                        extraHtml += `<div class="extra-metric-row"><span class="extra-metric-name">${m.name}</span><span class="extra-metric-value">${val} ${m.unit || ''}</span></div>`;
+                    }
+
+                    stringaDisplay = `
+                        <div class="metric-container-static">
+                            <div class="main-metric-group" style="margin-bottom: 10px;">
+                                <span class="main-metric-name" style="font-size: 0.7em; opacity: 0.8; display: block;">${first.name}</span>
+                                <div class="main-metric-value" style="font-size: 1.2em; font-weight: bold;">${firstStr}</div>
+                            </div>
+                            ${extraHtml ? `<div class="extra-metrics-list">${extraHtml}</div>` : ''}
+                        </div>`;
+                }
+
+                updateDOMElement(config.valId, stringaDisplay);
+                const timeEl = document.getElementById(config.timeId);
+                if (timeEl) timeEl.innerText = timeString;
+
+                // --- PARTE 3: AGGIORNAMENTO DATI GRAFICO ---
+                const mainVal = data.metrics[0].value;
+                if (typeof mainVal === 'number') {
+                    if (!chartDataStore[sourceId]) {
+                        chartDataStore[sourceId] = { values: [] };
+                        createChartButton(sourceId);
+                    }
+
+                    chartDataStore[sourceId].values.push(mainVal);
+                    if (chartDataStore[sourceId].values.length > 10) chartDataStore[sourceId].values.shift();
+
+                    // Se è il primo dato in assoluto o la metrica attiva, aggiorna
+                    if (!activeChartSource) {
+                        activeChartSource = sourceId;
+                        const firstBtn = document.querySelector(`.chart-btn[data-source="${sourceId}"]`);
+                        if (firstBtn) firstBtn.classList.add('active');
+                    }
+
+                    if (activeChartSource === sourceId) {
+                        updateChartVisuals();
+                    }
+                }
+            }
+        }
+
+        // Avvio al caricamento della pagina
+        document.addEventListener("DOMContentLoaded", () => {
+            initChart();
+        });
     </script>
 </body>
 

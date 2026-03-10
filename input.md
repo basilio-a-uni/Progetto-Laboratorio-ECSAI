@@ -7,7 +7,7 @@
 1. As the Administrator I want to see current rules
 2. As the Administrator I want to see the list of available actuators
 3. As the Administrator I want to see the list of available sensors
-4. As the Administrator I want to visualize sensors divided by type
+4. As the Administrator I want to visualize the trends of the latest sensors values (piccolo fix todo: fare in modo che per le metriche con più di un valore il grafico mostra tutti i valori)
 5. As the Administrator I want to know the status of the operative system
 6. As the Administrator I want to add a rule
 7. As the Administrator I want to remove a rule
