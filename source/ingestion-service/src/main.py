@@ -43,7 +43,7 @@ def unify_topic(topic: str, data: dict) -> dict:
         
     new_data = dict()
     
-    # Campi comuni a tutti i topic
+    # common data
     new_data["timestamp"] = data["event_time"]
     new_data["source_id"] = topic
     new_data["source_type"] = "telemetry"
@@ -58,7 +58,7 @@ def unify_topic(topic: str, data: dict) -> dict:
             {"name": "cumulative_kwh", "value": data["cumulative_kwh"], "unit": "kWh"}
         ]
 
-    # Regole specifiche per environment.v1
+    # environment.v1
     elif topic in TOPIC_ENVIRONMENT_V1:
         new_data["status"] = data["status"]
         new_data["metrics"] = [
@@ -66,7 +66,7 @@ def unify_topic(topic: str, data: dict) -> dict:
             for m in data.get("measurements", [])
         ]
 
-    # Regole specifiche per thermal_loop.v1
+    # thermal_loop.v1
     elif topic in TOPIC_THERMAL_LOOP_V1:
         new_data["status"] = data["status"]
         new_data["metrics"] = [
@@ -74,7 +74,7 @@ def unify_topic(topic: str, data: dict) -> dict:
             {"name": "flow_l_min", "value": data["flow_l_min"], "unit": "L/min"}
         ]
 
-    # Regole specifiche per airlock.v1
+    # airlock.v1
     elif topic in TOPIC_AIRLOCK_V1:
         new_data["status"] = data["last_state"]
         new_data["metrics"] = [
@@ -94,26 +94,26 @@ def unify_sensor(sensor_id: str, data: dict) -> dict:
         
     new_data = dict()
     
-    # Campi comuni a tutti i sensori REST
+    # common data
     new_data["timestamp"] = data["captured_at"]
     new_data["source_id"] = sensor_id
     new_data["source_type"] = "rest"
     new_data["status"] = data["status"]
 
-    # Mapping esplicito verso rest.scalar.v1
+    # rest.scalar.v1
     if sensor_id in REST_SCALAR_V1:
         new_data["metrics"] = [
             {"name": data["metric"], "value": data["value"], "unit": data["unit"]}
         ]
         
-    # Mapping esplicito verso rest.chemistry.v1
+    # rest.chemistry.v1
     elif sensor_id in REST_CHEMISTRY_V1:
         new_data["metrics"] = [
             {"name": m["metric"], "value": m["value"], "unit": m["unit"]} 
             for m in data.get("measurements", [])
         ]
         
-    # Mapping esplicito verso rest.particulate.v1
+    # rest.particulate.v1
     elif sensor_id in REST_PARTICULATE_V1:
         new_data["metrics"] = [
             {"name": "pm1", "value": data["pm1_ug_m3"], "unit": "ug/m3"},
@@ -121,7 +121,7 @@ def unify_sensor(sensor_id: str, data: dict) -> dict:
             {"name": "pm10", "value": data["pm10_ug_m3"], "unit": "ug/m3"}
         ]
         
-    # Mapping esplicito verso rest.level.v1
+    # rest.level.v1
     elif sensor_id in REST_LEVEL_V1:
         new_data["metrics"] = [
             {"name": "level_pct", "value": data["level_pct"], "unit": "percent"},
