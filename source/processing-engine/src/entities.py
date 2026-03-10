@@ -39,7 +39,7 @@ class Rule():
         else:
             raise ValueError(f"Operator '{self.operator}' is not a valid operator for a rule")
 
-# Attenzione:  triggered_rules_history non usato
+
 class State():
     def __init__(self, sensor_data=None, current_rules=None, triggered_rules_history=None, current_actuators_status=None, on_actuator_change=None, on_rule_triggered=None):
         self.sensor_data = sensor_data or {}
@@ -60,7 +60,6 @@ class State():
             self.current_rules[row[1]].append(Rule(row))
     
     def load_persistent_actuators(self):
-        # temporary TODO (maybe?): add persistance to actuators
         self.current_actuators_status = {
             "cooling_fan": "OFF",
             "entrance_humidifier": "OFF",
@@ -90,7 +89,6 @@ class State():
         new_rule = Rule(rule_data)
         self.current_rules[new_rule.sensor_name].append(new_rule)        
 
-    # NUOVO: Cancella una regola dal DB e dalla memoria
     def delete_rule(self, rule_id):
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()
@@ -119,7 +117,6 @@ class State():
 
         self.load_persistent_rules()
 
-    # NUOVO: Abilita/Disabilita la regola nel DB e nella memoria
     def toggle_rule(self, rule_id, is_enabled):
         conn = sqlite3.connect(os.getenv("DATABASE_URL"))
         cur = conn.cursor()

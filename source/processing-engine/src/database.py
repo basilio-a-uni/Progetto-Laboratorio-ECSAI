@@ -5,7 +5,6 @@ def init_db():
     conn = sqlite3.connect(os.getenv("DATABASE_URL"))
     cur = conn.cursor()
 
-    # AGGIUNTO: id INTEGER PRIMARY KEY AUTOINCREMENT
     cur.execute("""
     CREATE TABLE IF NOT EXISTS rules(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +18,7 @@ def init_db():
     )
     """)
 
-    # Inseriamo la regola di default solo se la tabella è vuota
+    # default example rule
     cur.execute("SELECT COUNT(*) FROM rules")
     if cur.fetchone()[0] == 0:
         cur.execute("""

@@ -58,7 +58,7 @@ def start_consuming(state):
     print("[*] Processing Engine in ascolto su RabbitMQ")
     channel.start_consuming()
 
-# NUOVO: Funzione per pubblicare aggiornamenti su RabbitMQ
+
 def publish_actuator_update(actuator_id, new_state):
     try:
         connection = get_connection()
@@ -104,13 +104,12 @@ def publish_rule_triggered(rule, actual_value):
         print(f"Errore pubblicazione evento rule_triggered: {e}")
 
 
-# --- ROTTE PER IL FRONTEND ---
+# Frontend routes
 
 @app.route('/rules', methods=['GET', 'POST'])
 def handle_rules():
     if request.method == 'POST':
         data = request.json
-        # Passiamo i dati direttamente al metodo, l'ID lo gestirà il database
         state.create_new_rule({
             'sensor_name': data['sensor_name'],
             'metric': data['metric'],
@@ -122,7 +121,6 @@ def handle_rules():
         return jsonify({"status": "success"}), 201
     
     else:
-        # GET: Mandiamo al frontend la lista di tutte le regole inclusi ID e stato
         all_rules = []
         for sensor in state.current_rules:
             for r in state.current_rules[sensor]:
@@ -138,7 +136,6 @@ def handle_rules():
                 })
         return jsonify(all_rules)
 
-# NUOVO: Elimina regola
 @app.route('/rules/<int:rule_id>', methods=['DELETE'])
 def delete_rule(rule_id):
     try:
@@ -161,7 +158,6 @@ def update_rule():
 
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# NUOVO: Attiva/Disattiva regola
 @app.route('/rules/<int:rule_id>/toggle', methods=['POST'])
 def toggle_rule(rule_id):
     data = request.json
@@ -190,7 +186,7 @@ def history():
     return jsonify(result)
     
 
-# --- NUOVI ENDPOINT PER SENSORI E ATTUATORI ---
+# Sensors and actuators endpoints
 
 @app.route('/sensors', methods=['GET'])
 def get_sensors():
@@ -220,7 +216,6 @@ def get_sensors():
 
 @app.route('/actuators', methods=['GET'])
 def get_actuators():
-    # Trasformiamo il dizionario current_actuators_status in una lista per il frontend
     actuators = []
     for name, status in state.current_actuators_status.items():
         actuators.append({
@@ -238,7 +233,6 @@ def toggle_actuator(actuator_id):
         state.current_actuators_status[actuator_id] = new_state
         print(f"[Manual Control] Actuator {actuator_id} set to {new_state}")
         
-        # NUOVO: Avvisiamo il frontend (e chiunque altro ascolti) che l'attuatore è cambiato
         publish_actuator_update(actuator_id, new_state)
         
         return jsonify({"status": "success"}), 200
