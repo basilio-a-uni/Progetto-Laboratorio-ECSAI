@@ -2,6 +2,7 @@
 <html lang="it">
 
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base | Rule Management</title>
@@ -394,6 +395,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="sidebar">
         <div class="sidebar-top"><img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}"
                 style="width: 32px; padding: 10px;"></div>
@@ -538,7 +540,8 @@
             </form>
         </div>
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     <script>
         const API_BASE_URL = '';
 
@@ -601,7 +604,6 @@
                 document.getElementById('field-id').value = data.id;
                 document.getElementById('field-sensor').value = data.sensor_name;
 
-                // Aggiorna le metriche prima di selezionare quella corretta
                 updateMetricList();
 
                 document.getElementById('field-metric').value = data.metric;
@@ -612,7 +614,7 @@
             } else {
                 document.getElementById('modal-title').innerText = "Deploy Protocol";
                 document.getElementById('btn-submit-text').innerText = "Deploy to Base";
-                updateMetricList(); // Disabilita correttamente il campo metrica
+                updateMetricList();
             }
 
             document.getElementById('rule-modal').style.display = 'flex';
@@ -682,6 +684,13 @@
                 body: JSON.stringify({ enabled })
             });
         }
+        const socket = io()
+
+        socket.on('telemetry_update', notificationOnWarningStatus)
+
+        socket.on('connect', notificationOnConnection)
+
+        socket.on('rule_triggered', notificationOnRuleTriggered)
     </script>
 </body>
 

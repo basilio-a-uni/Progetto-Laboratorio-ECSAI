@@ -2,6 +2,7 @@
 <html lang="it">
 
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base Operations Dashboard</title>
@@ -423,95 +424,6 @@
             }
         }
 
-        #notification-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-        }
-
-        .notification {
-            min-width: 300px;
-            max-width: 420px;
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: white;
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-            animation: slideIn 0.25s ease;
-            pointer-events: auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .notification-warning {
-            background: linear-gradient(135deg, #f33a1e, #ff6b3d);
-            border-left: 6px solid #ffd166;
-        }
-
-        .notification-rule {
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            border-left: 6px solid #ddd6fe;
-        }
-
-        .notification-actuator {
-            background: linear-gradient(135deg, #2563eb, #38bdf8);
-            border-left: 6px solid #bfdbfe;
-        }
-
-        .notification-info {
-            background: linear-gradient(135deg, #334155, #64748b);
-            border-left: 6px solid #cbd5e1;
-        }
-
-        .notification-error {
-            background: linear-gradient(135deg, #991b1b, #dc2626);
-            border-left: 6px solid #fecaca;
-        }
-
-        .notification-title {
-            font-weight: bold;
-            margin-bottom: 6px;
-            font-size: 1em;
-        }
-
-        .notification-message {
-            font-size: 0.92em;
-            line-height: 1.45;
-            opacity: 0.98;
-        }
-
-        .notification-meta {
-            margin-top: 8px;
-            font-size: 0.78em;
-            opacity: 0.85;
-            font-family: monospace;
-        }
-
-        .notification-close {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(25px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
         .chart-layout {
             display: flex;
             gap: 20px;
@@ -558,6 +470,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="sidebar">
         <div class="sidebar-top">
             <img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}" alt="Mission"
@@ -719,349 +632,165 @@
     </div>
 
     <div id="notification-container"></div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     <script>
-        const socket = io();
+    const sourceMap = {
+        'greenhouse_temperature': { valId: 'temp-value', timeId: 'temp-time' },
+        'entrance_humidity': { valId: 'hum-value', timeId: 'hum-time' },
+        'co2_hall': { valId: 'co2-value', timeId: 'co2-time' },
+        'corridor_pressure': { valId: 'press-value', timeId: 'press-time' },
+        'mars/telemetry/radiation': { valId: 'rad-value', timeId: 'rad-time' },
+        'mars/telemetry/life_support': { valId: 'life-value', timeId: 'life-time' },
+        'hydroponic_ph': { valId: 'ph-value', timeId: 'ph-time' },
+        'air_quality_voc': { valId: 'voc-value', timeId: 'voc-time' },
+        'air_quality_pm25': { valId: 'pm25-value', timeId: 'pm25-time' },
+        'water_tank_level': { valId: 'water-value', timeId: 'water-time' },
+        'mars/telemetry/solar_array': { valId: 'solar-value', timeId: 'solar-time' },
+        'mars/telemetry/power_bus': { valId: 'bus-value', timeId: 'bus-time' },
+        'mars/telemetry/power_consumption': { valId: 'cons-value', timeId: 'cons-time' },
+        'mars/telemetry/thermal_loop': { valId: 'therm-value', timeId: 'therm-time' },
+        'mars/telemetry/airlock': { valId: 'airlock-value', timeId: 'airlock-time' }
+    };
 
-        const notificationCooldown = new Map();
-        const sensorLastStatus = new Map();
+    const chartDataStore = JSON.parse(sessionStorage.getItem('mars_chart_data')) || {};
+    let activeChartSource = sessionStorage.getItem('mars_active_source') || null;
+    let telemetryChart = null;
 
-        function showNotification({
-            type = 'info',
-            title = 'Notification',
-            message = '',
-            sourceId = '',
-            timestamp = null,
-            dedupeKey = null,
-            cooldownMs = 8000,
-            durationMs = 6000
-        }) {
-            const container = document.getElementById('notification-container');
-            if (!container) return;
+    function saveChartData() {
+        sessionStorage.setItem('mars_chart_data', JSON.stringify(chartDataStore));
+        if (activeChartSource) sessionStorage.setItem('mars_active_source', activeChartSource);
+    }
 
-            const key = dedupeKey || `${type}:${sourceId}:${message}`;
-            const now = Date.now();
-            const lastShown = notificationCooldown.get(key);
-
-            if (lastShown && now - lastShown < cooldownMs) {
-                return;
-            }
-            notificationCooldown.set(key, now);
-
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-
-            const readableTime = timestamp
-                ? new Date(timestamp).toLocaleTimeString()
-                : new Date().toLocaleTimeString();
-
-            notification.innerHTML = `
-                <div class="notification-close" onclick="this.parentElement.remove()">×</div>
-                <div class="notification-title">${title}</div>
-                <div class="notification-message">${message}</div>
-                <div class="notification-meta">${sourceId ? `Source: ${sourceId} • ` : ''}${readableTime}</div>
-            `;
-
-            container.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, durationMs);
+    function updateDOMElement(id, valueHTML) {
+        const el = document.getElementById(id);
+        if (el && el.innerHTML !== valueHTML) {
+            el.innerHTML = valueHTML;
+            el.classList.remove('update-flash');
+            void el.offsetWidth; 
+            el.classList.add('update-flash');
         }
+    }
 
-        // 1. CHIAMATA REST PER L'HEALTH STATUS
-        async function fetchHealthStatus() {
-            try {
-                const response = await fetch('http://localhost:8080/health', {
-                    method: 'GET',
-                    headers: { 'accept': 'application/json' }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const statusText = data.status || "UNKNOWN";
-
-                    document.getElementById('health-status-text').innerText = statusText.toUpperCase();
-
-                    const healthPanel = document.getElementById('panel-health');
-                    if (statusText.toLowerCase() === 'ok') {
-                        healthPanel.style.backgroundColor = 'var(--panel-bg-health)';
-                    } else {
-                        healthPanel.style.backgroundColor = 'var(--warn-color)';
-                    }
-
-                    document.getElementById('health-time').innerText = "Last check: " + new Date().toLocaleTimeString();
-                } else {
-                    console.error("Errore HTTP fetch health:", response.status);
-                }
-            } catch (error) {
-                console.error("Errore di connessione a /health:", error);
-                document.getElementById('health-status-text').innerText = "ERROR";
-                document.getElementById('panel-health').style.backgroundColor = 'var(--warn-color)';
+    function initChart() {
+        const ctx = document.getElementById('mainTelemetryChart').getContext('2d');
+        telemetryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                datasets: [{
+                    label: activeChartSource ? activeChartSource.split('/').pop().toUpperCase() : 'Seleziona metrica',
+                    data: (activeChartSource && chartDataStore[activeChartSource]) ? chartDataStore[activeChartSource].values : [],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.15)',
+                    fill: true, tension: 0.4, borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 0 },
+                scales: { y: { grid: { color: '#2d2d2d' }, ticks: { color: '#555555' } }, x: { display: false } }
             }
-        }
-
-        fetchHealthStatus();
-        setInterval(fetchHealthStatus, 5000);
-
-        // 2. FUNZIONE ANIMAZIONE
-        function updateDOMElement(id, valueHTML) {
-            const el = document.getElementById(id);
-            if (el && el.innerHTML !== valueHTML) {
-                el.innerHTML = valueHTML;
-                el.classList.remove('update-flash');
-                void el.offsetWidth;
-                el.classList.add('update-flash');
-            }
-        }
-
-        // 3. MAPPA CONFIGURAZIONE
-        const sourceMap = {
-            'greenhouse_temperature': { valId: 'temp-value', timeId: 'temp-time', metricTarget: 'temperature' },
-            'entrance_humidity': { valId: 'hum-value', timeId: 'hum-time', metricTarget: 'humidity' },
-            'co2_hall': { valId: 'co2-value', timeId: 'co2-time', metricTarget: 'co2' },
-            'corridor_pressure': { valId: 'press-value', timeId: 'press-time', metricTarget: 'pressure' },
-
-            'mars/telemetry/radiation': { valId: 'rad-value', timeId: 'rad-time' },
-            'mars/telemetry/life_support': { valId: 'life-value', timeId: 'life-time', metricTarget: 'oxygen_pct' },
-
-            'hydroponic_ph': { valId: 'ph-value', timeId: 'ph-time', metricTarget: 'ph' },
-            'air_quality_voc': { valId: 'voc-value', timeId: 'voc-time' },
-            'air_quality_pm25': { valId: 'pm25-value', timeId: 'pm25-time', metricTarget: 'pm2.5' },
-            'water_tank_level': { valId: 'water-value', timeId: 'water-time', metricTarget: 'level_pct' },
-
-            'mars/telemetry/solar_array': { valId: 'solar-value', timeId: 'solar-time', metricTarget: 'power_kw' },
-            'mars/telemetry/power_bus': { valId: 'bus-value', timeId: 'bus-time', metricTarget: 'power_kw' },
-            'mars/telemetry/power_consumption': { valId: 'cons-value', timeId: 'cons-time', metricTarget: 'power_kw' },
-            'mars/telemetry/thermal_loop': { valId: 'therm-value', timeId: 'therm-time', metricTarget: 'temperature_c' },
-            'mars/telemetry/airlock': { valId: 'airlock-value', timeId: 'airlock-time', metricTarget: 'cycles_per_hour' }
-        };
-
-        // 5. CACHE INIZIALE
-        document.addEventListener("DOMContentLoaded", function () {
-            fetch('/api/latest-telemetry')
-                .then(response => {
-                    if (!response.ok) throw new Error("API /api/latest-telemetry non ancora implementata o errore server.");
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Cache telemetria recuperata:", data);
-                    for (const sourceId in data) {
-                        const latestPayload = data[sourceId];
-                        processTelemetryData(latestPayload);
-                    }
-                })
-                .catch(err => console.warn("Errore recupero cache (tutto ok se il backend non è ancora pronto):", err));
         });
 
-        // 6. WEBSOCKET E NOTIFICHE
+        Object.keys(chartDataStore).forEach(sourceId => createChartButton(sourceId));
+    }
+
+    function createChartButton(sourceId) {
+        const container = document.getElementById('chart-buttons-list');
+        if (!container || document.querySelector(`.chart-btn[data-source="${sourceId}"]`)) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'chart-btn' + (sourceId === activeChartSource ? ' active' : '');
+        btn.dataset.source = sourceId;
+        btn.innerText = sourceId.split('/').pop().replace(/_/g, ' ').toUpperCase();
+        btn.onclick = () => {
+            activeChartSource = sourceId;
+            saveChartData();
+            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateChartVisuals();
+        };
+        container.appendChild(btn);
+    }
+
+    function updateChartVisuals() {
+        if (!activeChartSource || !chartDataStore[activeChartSource] || !telemetryChart) return;
+        telemetryChart.data.datasets[0].data = chartDataStore[activeChartSource].values;
+        telemetryChart.data.datasets[0].label = activeChartSource.split('/').pop().toUpperCase();
+        telemetryChart.update('none');
+    }
+
+    function processTelemetryData(data) {
+        if (typeof notificationOnWarningStatus === "function") notificationOnWarningStatus(data);
+        
+        const sourceId = data.source_id;
+        const config = sourceMap[sourceId];
+
+        if (config && data.metrics && data.metrics.length > 0) {
+            const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+            let stringaDisplay = '';
+
+            if (data.metrics.length === 1) {
+                const m = data.metrics[0];
+                const valore = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
+                stringaDisplay = m.unit ? `${valore} ${m.unit}` : valore;
+            } else {
+                const first = data.metrics[0];
+                const firstVal = typeof first.value === 'number' ? first.value.toFixed(2) : first.value;
+                let extraHtml = '';
+                for (let i = 1; i < data.metrics.length; i++) {
+                    const m = data.metrics[i];
+                    const val = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
+                    extraHtml += `<div class="extra-metric-row"><span class="extra-metric-name">${m.name}</span><span class="extra-metric-value">${val} ${m.unit || ''}</span></div>`;
+                }
+                stringaDisplay = `<div class="metric-container-static"><div class="main-metric-group" style="margin-bottom: 10px;"><span class="main-metric-name" style="font-size: 0.7em; opacity: 0.8; display: block;">${first.name}</span><div class="main-metric-value" style="font-size: 1.2em; font-weight: bold;">${firstVal} ${first.unit || ''}</div></div>${extraHtml}</div>`;
+            }
+
+            updateDOMElement(config.valId, stringaDisplay);
+            const timeEl = document.getElementById(config.timeId);
+            if (timeEl) timeEl.innerText = timeString;
+        }
+
+        const mainMetric = data.metrics && data.metrics[0];
+        if (mainMetric && typeof mainMetric.value === 'number') {
+            if (!chartDataStore[sourceId]) {
+                chartDataStore[sourceId] = { values: [] };
+                createChartButton(sourceId);
+            }
+            chartDataStore[sourceId].values.push(mainMetric.value);
+            if (chartDataStore[sourceId].values.length > 10) chartDataStore[sourceId].values.shift();
+            
+            saveChartData();
+
+            if (!activeChartSource) {
+                activeChartSource = sourceId;
+                const btn = document.querySelector(`.chart-btn[data-source="${sourceId}"]`);
+                if (btn) btn.classList.add('active');
+            }
+            if (activeChartSource === sourceId) updateChartVisuals();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initChart();
+        
+        const socket = io();
+        socket.on('connect', () => {
+            if (typeof notificationOnConnection === "function") notificationOnConnection();
+        });
+        socket.on('rule_triggered', (data) => {
+            if (typeof notificationOnRuleTriggered === "function") notificationOnRuleTriggered(data);
+        });
         socket.on('telemetry_update', processTelemetryData);
 
-        socket.on('rule_triggered', (data) => {
-            const key = `rule_popup_${data.rule_id}`;
-
-            const alreadyShown = localStorage.getItem(key);
-
-            if (!alreadyShown) {
-                showNotification({
-                    type: 'rule',
-                    title: 'Rule triggered',
-                    message: `${data.sensor_name} ${data.operator} ${data.sensor_target_value} → ${data.actuator_name} set to ${data.actuator_set_value}`,
-                    sourceId: data.sensor_name,
-                    timestamp: data.timestamp
-                });
-
-                localStorage.setItem(key, 'true');
-            }
-        });
-
-        socket.on('connect', () => {
-            console.log('Connesso al Server Flask (WebSockets)!');
-
-            const alreadyShown = sessionStorage.getItem('frontend_connected_popup_shown');
-
-            if (!alreadyShown) {
-                showNotification({
-                    type: 'info',
-                    title: 'Frontend connected',
-                    message: 'WebSocket connection established successfully.',
-                    sourceId: 'frontend',
-                    durationMs: 4000
-                });
-                sessionStorage.setItem('frontend_connected_popup_shown', 'true');
-            }
-        });
-
-        socket.on('disconnect', () => console.log('Disconnesso dal Server Flask.'));
-
-        // #LOGICA GRAFICI
-
-        const chartDataStore = {};
-        let activeChartSource = null;
-        let telemetryChart = null;
-
-        // 1. Inizializzazione del Grafico 
-        function initChart() {
-            const ctx = document.getElementById('mainTelemetryChart').getContext('2d');
-            telemetryChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    datasets: [{
-                        label: 'Seleziona una metrica',
-                        data: [],
-                        borderColor: '#2ecc71',
-                        backgroundColor: 'rgba(46, 204, 113, 0.15)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#27ae60'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            grid: {
-                                color: '#2d2d2d',
-                                drawBorder: false
-                            },
-                            ticks: { color: '#555555' }
-                        },
-                        x: { display: false }
-                    },
-                    plugins: {
-                        legend: { display: true, labels: { color: '#2d2d2d' } }
-                    }
-                }
-            });
-        }
-
-        // 2. Funzione per creare i bottoni dei sensori sulla destra
-        function createChartButton(sourceId) {
-            const container = document.getElementById('chart-buttons-list');
-            // Evita di creare doppioni
-            if (document.querySelector(`.chart-btn[data-source="${sourceId}"]`)) return;
-
-            const btn = document.createElement('button');
-            btn.className = 'chart-btn';
-            btn.dataset.source = sourceId;
-            // Puliamo il nome (toglie i percorsi mars/telemetry/ e mette in maiuscolo)
-            const displayName = sourceId.split('/').pop().replace(/_/g, ' ').toUpperCase();
-            btn.innerText = displayName;
-
-            btn.onclick = () => {
-                activeChartSource = sourceId;
-                document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updateChartVisuals();
-            };
-
-            container.appendChild(btn);
-        }
-
-        // 3. Aggiornamento visivo del grafico
-        function updateChartVisuals() {
-            if (!activeChartSource || !chartDataStore[activeChartSource]) return;
-
-            const dataPoints = chartDataStore[activeChartSource].values;
-            telemetryChart.data.datasets[0].data = dataPoints;
-            telemetryChart.data.datasets[0].label = activeChartSource.split('/').pop().toUpperCase();
-            telemetryChart.update('none');
-        }
-
-        /**
-         * 4. FUNZIONE PRINCIPALE (SOSTITUISCE QUELLA VECCHIA)
-         * Questa funzione ora fa DUE cose:
-         * - Aggiorna i numeri nelle card (PH, Temp, ecc.)
-         * - Aggiorna i dati per il grafico
-         */
-        function processTelemetryData(data) {
-            const sourceId = data.source_id;
-            const config = sourceMap[sourceId];
-
-            // --- PARTE 1: GESTIONE NOTIFICHE E STATUS ---
-            const currentStatus = (data.status || '').toLowerCase();
-            const previousStatus = sensorLastStatus.get(sourceId);
-            if (currentStatus === 'warning' && previousStatus !== 'warning') {
-                showNotification({
-                    type: 'warning',
-                    title: '⚠ Sensor warning',
-                    message: `${sourceId} entered WARNING state.`,
-                    sourceId: sourceId,
-                    timestamp: data.timestamp
-                });
-            }
-            sensorLastStatus.set(sourceId, currentStatus);
-
-            // --- PARTE 2: AGGIORNAMENTO TESTO NELLE CARD (LOGICA ESISTENTE) ---
-            if (config && data.metrics && data.metrics.length > 0) {
-                const timeString = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-                let stringaDisplay = '';
-
-                if (data.metrics.length === 1) {
-                    const m = data.metrics[0];
-                    const valore = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
-                    stringaDisplay = m.unit ? `${valore} ${m.unit}` : valore;
-                } else {
-                    const first = data.metrics[0];
-                    const firstVal = typeof first.value === 'number' ? first.value.toFixed(2) : first.value;
-                    const firstStr = first.unit ? `${firstVal} ${first.unit}` : firstVal;
-
-                    let extraHtml = '';
-                    for (let i = 1; i < data.metrics.length; i++) {
-                        const m = data.metrics[i];
-                        const val = typeof m.value === 'number' ? m.value.toFixed(2) : m.value;
-                        extraHtml += `<div class="extra-metric-row"><span class="extra-metric-name">${m.name}</span><span class="extra-metric-value">${val} ${m.unit || ''}</span></div>`;
-                    }
-
-                    stringaDisplay = `
-                        <div class="metric-container-static">
-                            <div class="main-metric-group" style="margin-bottom: 10px;">
-                                <span class="main-metric-name" style="font-size: 0.7em; opacity: 0.8; display: block;">${first.name}</span>
-                                <div class="main-metric-value" style="font-size: 1.2em; font-weight: bold;">${firstStr}</div>
-                            </div>
-                            ${extraHtml ? `<div class="extra-metrics-list">${extraHtml}</div>` : ''}
-                        </div>`;
-                }
-
-                updateDOMElement(config.valId, stringaDisplay);
-                const timeEl = document.getElementById(config.timeId);
-                if (timeEl) timeEl.innerText = timeString;
-
-                // --- PARTE 3: AGGIORNAMENTO DATI GRAFICO ---
-                const mainVal = data.metrics[0].value;
-                if (typeof mainVal === 'number') {
-                    if (!chartDataStore[sourceId]) {
-                        chartDataStore[sourceId] = { values: [] };
-                        createChartButton(sourceId);
-                    }
-
-                    chartDataStore[sourceId].values.push(mainVal);
-                    if (chartDataStore[sourceId].values.length > 10) chartDataStore[sourceId].values.shift();
-
-                    // Se è il primo dato in assoluto o la metrica attiva, aggiorna
-                    if (!activeChartSource) {
-                        activeChartSource = sourceId;
-                        const firstBtn = document.querySelector(`.chart-btn[data-source="${sourceId}"]`);
-                        if (firstBtn) firstBtn.classList.add('active');
-                    }
-
-                    if (activeChartSource === sourceId) {
-                        updateChartVisuals();
-                    }
-                }
-            }
-        }
-
-        // Avvio al caricamento della pagina
-        document.addEventListener("DOMContentLoaded", () => {
-            initChart();
-        });
+        fetch('/api/latest-telemetry')
+            .then(res => res.json())
+            .then(cache => {
+                for (const id in cache) processTelemetryData(cache[id]);
+            })
+            .catch(err => console.error("Errore cache:", err));
+    });
     </script>
 </body>
 

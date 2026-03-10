@@ -2,6 +2,7 @@
 <html lang="it">
 
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base | History</title>
@@ -177,6 +178,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="sidebar">
         <div class="sidebar-top"><img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}"
                 style="width: 32px; padding: 10px;"></div>
@@ -206,7 +208,9 @@
         </div>
     </div>
 
-    <script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>        
         function formatTime(ts) {
             const d = new Date(ts * 1000);
             return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -215,7 +219,7 @@
         function fetchHistory() {
             fetch('/api/history')
                 .then(res => {
-                    if (!res.ok) throw new Error(); // Salta al catch se il codice non è 200
+                    if (!res.ok) throw new Error();
                     return res.json();
                 })
                 .then(data => {
@@ -225,7 +229,6 @@
                         return;
                     }
 
-                    // Ordina per il più recente
                     data.sort((a, b) => b.triggered_at - a.triggered_at);
 
                     container.innerHTML = data.map(rule => `
@@ -247,6 +250,14 @@
                         '<div class="empty-state" style="color: var(--danger);">ERROR: Connection to Mainframe Lost.</div>';
                 });
         }
+
+        const socket = io()
+
+        socket.on('telemetry_update', notificationOnWarningStatus)
+
+        socket.on('connect', notificationOnConnection)
+
+        socket.on('rule_triggered', notificationOnRuleTriggered)
 
         fetchHistory();
         setInterval(fetchHistory, 5000);

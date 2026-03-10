@@ -2,6 +2,7 @@
 <html lang="it">
 
 <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notifications.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Base | Sensors & Actuators</title>
@@ -360,6 +361,7 @@
 </head>
 
 <body>
+    <div id="notification-container"></div>
     <div class="sidebar">
         <div class="sidebar-top"><img src="{{ url_for('static', filename='icons/rocket_take_off_128px.png') }}"
                 style="width: 32px; padding: 10px;"></div>
@@ -458,9 +460,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     <script>
-        const socket = io();
-
         function toggleActuator(actuatorId, isChecked) {
             const newState = isChecked ? "ON" : "OFF";
             fetch(`/actuators/${actuatorId}/toggle`, {
@@ -480,7 +481,10 @@
             });
         }
 
+        const socket = io()
+
         socket.on('telemetry_update', function (data) {
+            notificationOnWarningStatus(data)
             const row = document.querySelector(`.list-row[data-source-id="${data.source_id}"]`);
             if (row) {
                 const badge = row.querySelector('.status-badge');
@@ -495,6 +499,10 @@
             const toggle = document.getElementById(`toggle-${data.actuator_id}`);
             if (toggle) toggle.checked = (data.state === "ON");
         });
+
+        socket.on('connect', notificationOnConnection)
+
+        socket.on('rule_triggered', notificationOnRuleTriggered)
     </script>
 </body>
 
